@@ -1,13 +1,14 @@
-
 import { Suspense } from 'react';
-import { SuccessView } from './_components/success-view';
+import SuccessContent from './SuccessContent';
 
-// This is the main Page, which is a Server Component by default.
-// It uses Suspense to handle the loading of search parameters in the client component.
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div>Loading success message...</div>}>
-      <SuccessView />
+    <Suspense fallback={
+      <div className="container mx-auto max-w-2xl px-4 py-12 flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <div className="text-center">Loading payment confirmation...</div>
+      </div>
+    }>
+      <SuccessContent />
     </Suspense>
   );
 }

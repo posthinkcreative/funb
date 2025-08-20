@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -9,7 +8,7 @@ import { CheckCircle2, ShoppingBag } from 'lucide-react';
 import { courses } from '@/lib/mock-data';
 import React from 'react';
 
-export function SuccessView() {
+export default function SuccessContent() {
   const searchParams = useSearchParams();
   const courseId = searchParams.get('courseId');
   const course = courses.find(c => c.id === courseId);

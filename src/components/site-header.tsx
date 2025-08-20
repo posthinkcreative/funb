@@ -150,7 +150,7 @@ function HeaderContent() {
 // just because the header needs to read search params.
 export default function SiteHeader() {
   return (
-    <Suspense fallback={<div>Loading header...</div>}>
+    <Suspense fallback={<div className="h-16 border-b"></div>}>
       <HeaderContent />
     </Suspense>
   )

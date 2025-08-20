@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { courses } from '@/lib/mock-data';
 import { EditCourseForm } from './_components/edit-form';
 import type { Course } from '@/types';
+import React from 'react';
 
 function getCourse(id: string): Course | undefined {
     return courses.find(c => c.id === id);
@@ -10,8 +11,8 @@ function getCourse(id: string): Course | undefined {
 
 // This is the Page, a Server Component.
 // It fetches the course data.
-export default function EditCoursePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const course = getCourse(id);
 
   if (!course) {
