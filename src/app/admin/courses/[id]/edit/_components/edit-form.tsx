@@ -28,7 +28,7 @@ import { Trash, GripVertical, PlusCircle } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DatePicker } from "@/components/ui/datepicker"
 import { useToast } from "@/hooks/use-toast"
-import { courses } from "@/lib/mock-data"
+import { updateCourse } from "@/actions/courses"
 
 // Helper to parse duration string like "1hr 15min"
 const parseDuration = (duration: string) => {
@@ -102,7 +102,8 @@ interface EditCourseFormProps {
 }
 
 export function EditCourseForm({ course }: EditCourseFormProps) {
-  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+  const [draggedFeatureIndex, setDraggedFeatureIndex] = React.useState<number | null>(null);
+  const [draggedModuleIndex, setDraggedModuleIndex] = React.useState<number | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -140,93 +141,67 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
     name: "features",
   });
 
-  const { fields: moduleFields, append: appendModule, remove: removeModule } = useFieldArray({
+  const { fields: moduleFields, append: appendModule, remove: removeModule, move: moveModule } = useFieldArray({
     control: form.control,
     name: "modules",
   });
 
   // This handler will be used by both buttons, but with a different status.
   const handleSave = (status: "Published" | "Draft") => async (values: z.infer<typeof formSchema>) => {
-    // In a real app, you would handle the form submission here.
-    // We'll transform the duration back to a string format.
-    const finalValues = {
-        ...values,
-        status: status, // Add the status here
-        modules: values.modules.map(module => ({
-            ...module,
-            lessons: module.lessons.map(lesson => {
-                const { durationHours, durationMinutes } = lesson;
-                let durationString = '';
-                if (durationHours && durationHours > 0) {
-                    durationString += `${durationHours}hr `;
-                }
-                if (durationMinutes && durationMinutes > 0) {
-                    durationString += `${durationMinutes}min`;
-                }
-                return {
-                    id: lesson.id,
-                    title: lesson.title,
-                    duration: durationString.trim() || '0min',
-                }
-            })
-        }))
-    };
-    console.log("Updated Course Data:", finalValues);
+    try {
+        const result = await updateCourse(course.id, { ...values, status });
 
-    // Find the course in our mock data and update it.
-    const courseIndex = courses.findIndex(c => c.id === course.id);
-    if (courseIndex !== -1) {
-        const currentCourse = courses[courseIndex];
-        courses[courseIndex] = {
-            ...currentCourse,
-            ...values,
-            price: Number(values.price),
-            status: status, // This is where we set the status
-            features: values.features.map(f => f.value),
-            modules: values.modules.map(m => ({
-                id: m.id,
-                title: m.title,
-                lessons: m.lessons.map(l => {
-                    const { durationHours, durationMinutes } = l;
-                    let durationString = '';
-                    if (durationHours && durationHours > 0) {
-                        durationString += `${durationHours}hr `;
-                    }
-                    if (durationMinutes && durationMinutes > 0) {
-                        durationString += `${durationMinutes}min`;
-                    }
-                    return {
-                        id: l.id,
-                        title: l.title,
-                        duration: durationString.trim() || '0min',
-                    };
-                })
-            }))
-        };
+        if (!result.success) {
+            toast({
+                title: `Error Saving Course`,
+                description: result.error,
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        toast({
+            title: `Course ${status === 'Published' ? 'Published' : 'Saved as Draft'}`,
+            description: `The course "${values.title}" has been saved successfully.`,
+        });
+        
+        router.push("/admin/courses");
+        router.refresh(); 
+
+    } catch (error) {
+        console.error("Failed to update course:", error);
+        toast({
+            title: `Error`,
+            description: "An unexpected error occurred while saving the course.",
+            variant: 'destructive',
+        });
     }
-    
-
-    toast({
-        title: `Course ${status === 'Published' ? 'Published' : 'Saved as Draft'}`,
-        description: `The course "${values.title}" has been saved successfully.`,
-    });
-
-    router.push("/admin/courses");
-    router.refresh(); // To force a re-render of the table with updated data
-  }
-
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
   };
 
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault(); // Necessary to allow dropping
+  // --- Feature Drag Handlers ---
+  const handleFeatureDragStart = (index: number) => {
+    setDraggedFeatureIndex(index);
+  };
+  const handleFeatureDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault(); 
+  };
+  const handleFeatureDrop = (index: number) => {
+    if (draggedFeatureIndex === null) return;
+    moveFeature(draggedFeatureIndex, index);
+    setDraggedFeatureIndex(null);
   };
 
-  const handleDrop = (index: number) => {
-    if (draggedIndex === null) return;
-    moveFeature(draggedIndex, index);
-    setDraggedIndex(null);
+  // --- Module Drag Handlers ---
+  const handleModuleDragStart = (index: number) => {
+    setDraggedModuleIndex(index);
+  };
+  const handleModuleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+  const handleModuleDrop = (index: number) => {
+    if (draggedModuleIndex === null) return;
+    moveModule(draggedModuleIndex, index);
+    setDraggedModuleIndex(null);
   };
 
   const watchedImageUrl = form.watch("imageUrl");
@@ -336,18 +311,30 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>Course Content</CardTitle>
-                    <CardDescription>Organize your course into modules and lessons.</CardDescription>
+                    <CardDescription>Organize your course into modules and lessons. Drag to reorder.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
                         <Accordion type="multiple" className="w-full">
                             {moduleFields.map((module, moduleIndex) => (
-                                <ModuleItem 
-                                    key={module.id} 
-                                    moduleIndex={moduleIndex} 
-                                    control={form.control}
-                                    removeModule={removeModule}
-                                />
+                                <div
+                                    key={module.id}
+                                    draggable
+                                    onDragStart={() => handleModuleDragStart(moduleIndex)}
+                                    onDragOver={handleModuleDragOver}
+                                    onDrop={() => handleModuleDrop(moduleIndex)}
+                                    className={`transition-opacity ${draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100'}`}
+                                >
+                                    <ModuleItem
+                                        moduleIndex={moduleIndex} 
+                                        control={form.control}
+                                        removeModule={removeModule}
+                                        moveLesson={(from, to) => {
+                                            const { move } = useFieldArray({ control: form.control, name: `modules.${moduleIndex}.lessons` });
+                                            move(from, to);
+                                        }}
+                                    />
+                                </div>
                             ))}
                         </Accordion>
                         
@@ -500,11 +487,11 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
                     {featureFields.map((field, index) => (
                         <div
                             key={field.id}
-                            className={`flex items-center gap-2 transition-opacity ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}`}
+                            className={`flex items-center gap-2 transition-opacity ${draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100'}`}
                             draggable
-                            onDragStart={() => handleDragStart(index)}
-                            onDragOver={handleDragOver}
-                            onDrop={() => handleDrop(index)}
+                            onDragStart={() => handleFeatureDragStart(index)}
+                            onDragOver={handleFeatureDragOver}
+                            onDrop={() => handleFeatureDrop(index)}
                         >
                             <Button type="button" variant="ghost" size="icon" className="cursor-grab">
                                 <GripVertical />
@@ -556,11 +543,26 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
 }
 
 // Sub-component for a single module in the form
-function ModuleItem({ moduleIndex, control, removeModule }: { moduleIndex: number, control: any, removeModule: (index: number) => void }) {
+function ModuleItem({ moduleIndex, control, removeModule, moveLesson }: { moduleIndex: number, control: any, removeModule: (index: number) => void, moveLesson: (from: number, to: number) => void }) {
     const { fields: lessonFields, append: appendLesson, remove: removeLesson } = useFieldArray({
         control,
         name: `modules.${moduleIndex}.lessons`,
     });
+    const [draggedLessonIndex, setDraggedLessonIndex] = React.useState<number | null>(null);
+
+    const handleLessonDragStart = (index: number) => {
+        setDraggedLessonIndex(index);
+    };
+
+    const handleLessonDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+    };
+
+    const handleLessonDrop = (index: number) => {
+        if (draggedLessonIndex === null) return;
+        moveLesson(draggedLessonIndex, index);
+        setDraggedLessonIndex(null);
+    };
 
     return (
         <AccordionItem value={`module-${moduleIndex}`} className="bg-muted/50 p-4 rounded-lg border">
@@ -591,7 +593,14 @@ function ModuleItem({ moduleIndex, control, removeModule }: { moduleIndex: numbe
             </div>
             <AccordionContent className="pt-4 pl-12 pr-4 space-y-4">
                  {lessonFields.map((lesson, lessonIndex) => (
-                    <div key={lesson.id} className="flex items-center gap-2">
+                    <div 
+                        key={lesson.id} 
+                        className={`flex items-center gap-2 transition-opacity ${draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100'}`}
+                        draggable
+                        onDragStart={() => handleLessonDragStart(lessonIndex)}
+                        onDragOver={handleLessonDragOver}
+                        onDrop={() => handleLessonDrop(lessonIndex)}
+                    >
                         <GripVertical className="cursor-grab text-muted-foreground"/>
                          <FormField
                             control={control}
@@ -652,5 +661,3 @@ function ModuleItem({ moduleIndex, control, removeModule }: { moduleIndex: numbe
         </AccordionItem>
     );
 }
-
-    

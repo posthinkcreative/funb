@@ -4,6 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import React from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -39,11 +41,23 @@ const defaultValues: Partial<ProfileFormValues> = {
 
 export default function ProfilePage() {
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = React.useState(false);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: {
+      name: defaultValues.name || "",
+      email: defaultValues.email || "",
+    },
     mode: "onChange",
   })
+  
+  React.useEffect(() => {
+    setIsMounted(true);
+    // You could also fetch user data here and reset the form
+    // form.reset(defaultValues);
+  }, []);
+
 
   function onSubmit(data: ProfileFormValues) {
     toast({
@@ -60,41 +74,59 @@ export default function ProfilePage() {
           Manage your account settings and email preferences.
         </CardDescription>
       </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-          <CardFooter className="border-t px-6 py-4">
-             <Button type="submit">Save Changes</Button>
-          </CardFooter>
-        </form>
-      </Form>
+      {!isMounted ? (
+        <>
+            <CardContent className="space-y-8">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+                <Skeleton className="h-10 w-28" />
+            </CardFooter>
+        </>
+      ) : (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-8">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Your name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Your email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+                <Button type="submit">Save Changes</Button>
+            </CardFooter>
+            </form>
+        </Form>
+      )}
     </Card>
   )
 }

@@ -69,7 +69,7 @@ function HeaderContent() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-accent/90 text-primary-foreground backdrop-blur supports-[backdrop-filter]:bg-accent/80">
       <div className="flex h-16 items-center px-4">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -83,7 +83,7 @@ function HeaderContent() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                className="transition-colors hover:text-primary-foreground/80 text-primary-foreground/90"
               >
                 {link.label}
               </Link>
@@ -96,7 +96,7 @@ function HeaderContent() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden hover:bg-white/10"
             >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
@@ -131,10 +131,10 @@ function HeaderContent() {
                 <UserNav />
             ) : (
                 <>
-                    <Button variant="ghost" asChild>
+                    <Button variant="ghost" asChild className="hover:bg-white/10">
                         <Link href="/login">Log In</Link>
                     </Button>
-                    <Button asChild>
+                    <Button asChild className="bg-primary-foreground text-accent hover:bg-primary-foreground/90">
                         <Link href="/signup">Sign Up</Link>
                     </Button>
                 </>

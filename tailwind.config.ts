@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -9,6 +10,9 @@ export default {
   ],
   theme: {
     extend: {
+      backgroundImage: {
+        'footer-texture': "url('/img/footer-texture.png')",
+      },
       fontFamily: {
         body: ['var(--font-body)', 'sans-serif'],
         headline: ['var(--font-headline)', 'sans-serif'],
@@ -88,10 +92,22 @@ export default {
             height: '0',
           },
         },
+        'scroll': {
+          'to': {
+            transform: 'translateX(calc(-100% - 1rem * 4))',
+          },
+        },
+        'scroll-speakers': {
+          'to': {
+            transform: 'translateX(calc(-100% - 2rem * 4))',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'scroll': 'scroll 20s linear infinite',
+        'scroll-speakers': 'scroll-speakers 60s linear infinite',
       },
     },
   },

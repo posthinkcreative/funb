@@ -57,7 +57,7 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
           src={course.imageUrl}
           alt={course.title}
           fill
-          objectFit="cover"
+          style={{objectFit: 'cover'}}
           className="absolute inset-0 z-0"
           data-ai-hint="course hero background"
         />

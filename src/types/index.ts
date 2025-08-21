@@ -55,3 +55,32 @@ export type User = {
   email: string;
   avatarUrl: string;
 };
+
+export type Speaker = {
+  id: string;
+  name: string;
+  title: string;
+  imageUrl: string;
+  category: {
+    name: string;
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+  };
+};
+
+export type AlumniTestimonial = {
+  id: string;
+  name: string;
+  batch: string;
+  avatarUrl: string;
+  bgColor: string; // Changed from className to a color value
+  before: {
+    role: string;
+    university: string;
+  };
+  after: {
+    role: string;
+    company: string;
+    companyLogoUrl: string;
+  };
+};

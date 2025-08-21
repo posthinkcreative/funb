@@ -1,4 +1,6 @@
-import type { Instructor, Review, Course, Module } from '@/types';
+
+import type { Instructor, Review, Course, Module, Speaker, AlumniTestimonial } from '@/types';
+import { Briefcase, BarChart, Code, Megaphone, Palette, ChevronDown } from 'lucide-react';
 
 export const instructors: Instructor[] = [
   {
@@ -53,16 +55,18 @@ const modules: Module[] = [
   },
 ];
 
+const videoUrl = 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/HIGHLIGHT%20funb%203RD%20landscape.mp4?alt=media&token=d4b5c9d9-8eb7-4a0f-bcae-112acd1809eb';
+
 export const courses: Course[] = [
   {
     id: '1',
-    title: 'The Complete Web Development Bootcamp',
+    title: 'Digital Marketing Agency',
     category: 'Development',
     description: 'Learn to build modern web applications with the MERN stack.',
     longDescription: 'This comprehensive bootcamp covers everything you need to know to become a full-stack web developer. You will learn HTML, CSS, JavaScript, React, Node.js, Express, and MongoDB. The course includes hands-on projects and real-world examples to solidify your understanding.',
     price: 7485000,
-    imageUrl: 'https://placehold.co/600x400.png',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/1.jpg?alt=media&token=e5932ba0-d72f-4560-b905-1d404655ba9c',
+    videoUrl: videoUrl,
     rating: 4.8,
     reviewCount: 1250,
     instructor: instructors[1],
@@ -77,13 +81,13 @@ export const courses: Course[] = [
   },
   {
     id: '2',
-    title: 'UI/UX Design Masterclass',
+    title: 'Creative Business Solutions Agency',
     category: 'Design',
     description: 'Master the art of user interface and user experience design.',
     longDescription: 'In this masterclass, you will learn the principles of UI/UX design, from user research and wireframing to prototyping and usability testing. You will work on real-world projects to build a strong portfolio.',
     price: 5985000,
-    imageUrl: 'https://placehold.co/600x400.png',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/2.jpg?alt=media&token=147d6606-cf3b-4953-a4ce-7d75f45dcce1',
+    videoUrl: videoUrl,
     rating: 4.9,
     reviewCount: 980,
     instructor: instructors[0],
@@ -98,13 +102,13 @@ export const courses: Course[] = [
   },
   {
     id: '3',
-    title: 'Digital Marketing Fundamentals',
+    title: 'Great Ideas to Grow Your Business',
     category: 'Marketing',
     description: 'A beginner-friendly guide to digital marketing channels.',
     longDescription: 'This course provides a complete overview of digital marketing, including SEO, social media marketing, email marketing, and content marketing. Learn how to create and execute effective marketing campaigns.',
     price: 3735000,
-    imageUrl: 'https://placehold.co/600x400.png',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/3.jpg?alt=media&token=98002ced-555f-464f-85bb-e5d07e1d673a',
+    videoUrl: videoUrl,
     rating: 4.7,
     reviewCount: 750,
     instructor: instructors[0],
@@ -117,13 +121,13 @@ export const courses: Course[] = [
   },
   {
     id: '4',
-    title: 'Startup Business Management',
+    title: 'Professional Solution For Your Business',
     category: 'Business',
     description: 'Learn the essentials of starting and managing a successful business.',
     longDescription: 'This course covers the key aspects of entrepreneurship, from idea validation and business planning to fundraising and scaling. Gain the skills and knowledge to turn your startup idea into a reality.',
     price: 8985000,
-    imageUrl: 'https://placehold.co/600x400.png',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/4.jpg?alt=media&token=9ed325d2-001a-4cc7-95fe-3db1e719b12b',
+    videoUrl: videoUrl,
     rating: 4.8,
     reviewCount: 1100,
     instructor: instructors[1],
@@ -136,13 +140,13 @@ export const courses: Course[] = [
   },
   {
     id: '5',
-    title: 'Advanced CSS and Sass',
+    title: 'We Are Digital Marketing Agency',
     category: 'Development',
     description: 'Take your CSS skills to the next level with advanced techniques.',
     longDescription: 'Dive deep into modern CSS features like Flexbox, Grid, and Animations. Learn how to write clean, efficient, and reusable code with Sass. This course is perfect for front-end developers looking to level up their styling skills.',
     price: 2985000,
-    imageUrl: 'https://placehold.co/600x400.png',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/5.jpg?alt=media&token=329e54a9-fa1f-4e0b-98ec-a030f3aec046',
+    videoUrl: videoUrl,
     rating: 4.9,
     reviewCount: 850,
     instructor: instructors[0],
@@ -155,13 +159,13 @@ export const courses: Course[] = [
   },
   {
     id: '6',
-    title: 'Data Science with Python',
+    title: 'Digital Marketing Bootcamp',
     category: 'Development',
     description: 'Unlock the power of data with Python, Pandas, and Matplotlib.',
     longDescription: 'This course is your complete guide to data science using Python. You will learn data analysis, visualization, and machine learning techniques with popular libraries like NumPy, Pandas, and Scikit-learn.',
     price: 7485000,
-    imageUrl: 'https://placehold.co/600x400.png',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/6.jpg?alt=media&token=e9557930-9244-4c75-ace9-694e6fb8c0c8',
+    videoUrl: videoUrl,
     rating: 4.8,
     reviewCount: 2300,
     instructor: instructors[1],
@@ -171,5 +175,261 @@ export const courses: Course[] = [
     level: 'Intermediate',
     schedule: 'Fixed',
     status: 'Draft',
+  },
+];
+
+export const speakers: Speaker[] = [
+  {
+    id: 'spk-1',
+    name: 'Antonius Wahono',
+    title: 'Legal Consultant',
+    imageUrl: '/speakers/speaker-1.jpg',
+    category: {
+      name: 'Business',
+      icon: Briefcase,
+      color: '#9333ea',
+    },
+  },
+  {
+    id: 'spk-2',
+    name: 'Aria Guna',
+    title: 'Founder of Neosoft',
+    imageUrl: '/speakers/speaker-2.jpg',
+    category: {
+      name: 'Data Science',
+      icon: BarChart,
+      color: '#ea580c',
+    },
+  },
+  {
+    id: 'spk-3',
+    name: 'Coach Fery Tjhia',
+    title: 'Gratyo Certified Business Coach',
+    imageUrl: '/speakers/speaker-3.jpg',
+    category: { name: 'Development', icon: Code, color: '#2563eb' },
+  },
+  {
+    id: 'spk-4',
+    name: 'Dedy Sidharta',
+    title: 'Founder & CEO D_Consulting',
+    imageUrl: '/speakers/speaker-4.jpg',
+    category: { name: 'Marketing', icon: Megaphone, color: '#db2777' },
+  },
+  {
+    id: 'spk-5',
+    name: 'dr. Tirta Mandira Hudji, M.B.A.',
+    title: 'Dokter Influencer',
+    imageUrl: '/speakers/speaker-5.jpg',
+    category: {
+      name: 'Business',
+      icon: Briefcase,
+      color: '#9333ea',
+    },
+  },
+  {
+    id: 'spk-6',
+    name: 'Frankie Wijaya',
+    title: 'Co-Founder & Senior Consultant',
+    imageUrl: '/speakers/speaker-6.jpg',
+    category: { name: 'Design', icon: Palette, color: '#16a34a' },
+  },
+  {
+    id: 'spk-7',
+    name: 'Imam Wijoyo',
+    title: 'Executive Chairman of Indonesia Winning Institute',
+    imageUrl: '/speakers/speaker-7.jpg',
+    category: {
+      name: 'Business',
+      icon: Briefcase,
+      color: '#9333ea',
+    },
+  },
+  {
+    id: 'spk-8',
+    name: 'Paulus Sulastri',
+    title: 'Co-Founder iCommunity Techpreneur',
+    imageUrl: '/speakers/speaker-8.jpg',
+    category: {
+      name: 'Data Science',
+      icon: BarChart,
+      color: '#ea580c',
+    },
+  },
+  {
+    id: 'spk-9',
+    name: 'William Sudhana',
+    title: 'Managing Director of vosFoyer',
+    imageUrl: '/speakers/speaker-9.jpg',
+    category: { name: 'Development', icon: Code, color: '#2563eb' },
+  },
+  {
+    id: 'spk-10',
+    name: 'Yudistira Ditya Pratama',
+    title: 'Digital Marketing Performance & Analytics Professional',
+    imageUrl: '/speakers/speaker-10.jpg',
+    category: { name: 'Marketing', icon: Megaphone, color: '#db2777' },
+  },
+];
+
+export const alumniTestimonials: AlumniTestimonial[] = [
+  {
+    id: 'alumni-1',
+    name: 'Dandi Rizky Eko Saputro',
+    batch: 'Software Engineering Jan 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#8b5cf6', // purple-500
+    before: {
+      role: 'Business English',
+      university: 'Universitas Surabaya',
+    },
+    after: {
+      role: 'Fullstack Engineer',
+      company: 'PT Adi Karya Media',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-2',
+    name: 'Putri Rahma Sari',
+    batch: 'Digital Marketing Jan 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#db2777', // pink-600
+    before: {
+      role: 'Accounting',
+      university: 'Universitas Jambi',
+    },
+    after: {
+      role: 'Social Media Specialist',
+      company: 'PT Pertamina Patra Niaga',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-3',
+    name: 'Yuda Satria Syaifi',
+    batch: 'Data Analytics May 22 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#f97316', // orange-500
+    before: {
+      role: 'Production Engineer',
+      university: 'PT Indocement Tunggal Prakarsa',
+    },
+    after: {
+      role: 'Quantitative and Automation Specialist',
+      company: 'CIMB Niaga Auto Finance',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-4',
+    name: 'Rachmah Gunawan',
+    batch: 'Software Engineering Jan 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#8b5cf6',
+    before: {
+      role: 'Environmental Engineering',
+      university: 'Brawijaya University',
+    },
+    after: {
+      role: 'Creative & General Developer',
+      company: 'MNC Media',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-5',
+    name: 'Ahmad Dhani',
+    batch: 'Digital Marketing Feb 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#db2777',
+    before: {
+      role: 'Economics',
+      university: 'Universitas Indonesia',
+    },
+    after: {
+      role: 'SEO Specialist',
+      company: 'Traveloka',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-6',
+    name: 'Siti Aminah',
+    batch: 'Data Analytics Jun 22 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#f97316',
+    before: {
+      role: 'Statistics',
+      university: 'Institut Teknologi Bandung',
+    },
+    after: {
+      role: 'Data Scientist',
+      company: 'Gojek',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+    {
+    id: 'alumni-7',
+    name: 'Bambang Pamungkas',
+    batch: 'Software Engineering Mar 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#8b5cf6',
+    before: {
+      role: 'Informatics Engineering',
+      university: 'Universitas Gadjah Mada',
+    },
+    after: {
+      role: 'Backend Engineer',
+      company: 'Tokopedia',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-8',
+    name: 'Dewi Lestari',
+    batch: 'Digital Marketing Apr 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#db2777',
+    before: {
+      role: 'Communication',
+      university: 'Universitas Padjadjaran',
+    },
+    after: {
+      role: 'Content Marketing Manager',
+      company: 'Shopee',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-9',
+    name: 'Eko Prasetyo',
+    batch: 'Data Analytics Jul 22 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#f97316',
+    before: {
+      role: 'Mathematics',
+      university: 'Universitas Airlangga',
+    },
+    after: {
+      role: 'Business Intelligence Analyst',
+      company: 'Bukalapak',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
+  },
+  {
+    id: 'alumni-10',
+    name: 'Fitriani',
+    batch: 'Software Engineering May 23 Batch',
+    avatarUrl: 'https://placehold.co/80x80.png',
+    bgColor: '#8b5cf6',
+    before: {
+      role: 'Computer Science',
+      university: 'Institut Pertanian Bogor',
+    },
+    after: {
+      role: 'Frontend Engineer',
+      company: 'Blibli',
+      companyLogoUrl: 'https://placehold.co/100x40.png',
+    },
   },
 ];

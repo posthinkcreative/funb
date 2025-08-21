@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,12 +20,6 @@ export default function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
-
-  // Pastikan ini hanya berjalan di client side
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
@@ -35,21 +29,18 @@ export default function LoginContent() {
         description: "Welcome back! You are now logged in.",
     });
 
-    // Gunakan searchParams hanya jika sudah tersedia (client side)
-    if (isClient) {
-      const redirectUrl = searchParams?.get('redirect');
+    const redirectUrl = searchParams.get('redirect');
 
-      if (redirectUrl) {
-          const urlWithLoginState = redirectUrl.includes('?') 
-              ? `${redirectUrl}&loggedIn=true`
-              : `${redirectUrl}?loggedIn=true`;
-          router.push(urlWithLoginState);
-      } else {
-          router.push("/account/profile?loggedIn=true");
-      }
+    if (redirectUrl) {
+        // If a redirect URL is present (e.g., from checkout), go there.
+        // Also append loggedIn=true to ensure the header updates.
+        const urlWithLoginState = redirectUrl.includes('?') 
+            ? `${redirectUrl}&loggedIn=true`
+            : `${redirectUrl}?loggedIn=true`;
+        router.push(urlWithLoginState);
     } else {
-      // Fallback jika searchParams belum tersedia
-      router.push("/account/profile?loggedIn=true");
+        // Otherwise, redirect to the user's account profile page.
+        router.push("/account/profile?loggedIn=true");
     }
   }
 

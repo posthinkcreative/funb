@@ -13,11 +13,9 @@ import {
 } from "@/components/ui/carousel"
 
 const heroImages = [
-  { src: "/hero-1.jpg", alt: "Hero Image 1", hint: "online learning" },
-  { src: "/hero-2.jpg", alt: "Hero Image 2", hint: "students collaborating" },
-  { src: "/hero-3.jpg", alt: "Hero Image 3", hint: "digital classroom" },
-  { src: "/hero-4.jpg", alt: "Hero Image 4", hint: "woman coding" },
-  { src: "/hero-5.jpg", alt: "Hero Image 5", hint: "team meeting" },
+  { src: "/hero-1.jpg?v=1", alt: "Hero Image 1", hint: "online learning" },
+  { src: "/hero-2.jpg?v=1", alt: "Hero Image 2", hint: "students collaborating" },
+  { src: "/hero-3.jpg?v=1", alt: "Hero Image 3", hint: "digital classroom" },
 ]
 
 export function HeroCarousel() {
