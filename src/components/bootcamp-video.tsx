@@ -114,8 +114,8 @@ export function BootcampVideo({ src }: BootcampVideoProps) {
         </div>
       </div>
       <DialogContent className="max-w-4xl p-0 border-0 bg-black">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Bootcamp Video</DialogTitle>
+        <DialogHeader>
+          <DialogTitle className="sr-only">Bootcamp Video</DialogTitle>
         </DialogHeader>
         <div className="aspect-video">
           <video

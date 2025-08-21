@@ -19,7 +19,7 @@ export function SpeakersSection() {
     )
     
   return (
-    <section className="py-24 bg-background">
+    <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold font-headline text-center mb-12 text-accent max-w-4xl mx-auto">
           Engage in Live Lessons with Top Practitioners from Industry-leading Companies

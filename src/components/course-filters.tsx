@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
+import { Skeleton } from './ui/skeleton';
 
 export default function CourseFilters() {
   const [isMounted, setIsMounted] = useState(false);
@@ -13,8 +14,15 @@ export default function CourseFilters() {
   }, []);
 
   if (!isMounted) {
-    // Anda bisa render placeholder atau skeleton di sini jika perlu
-    return null;
+    return (
+        <div className="mb-8 flex flex-col md:flex-row gap-4 items-center p-4 bg-muted rounded-lg">
+            <Skeleton className="h-10 w-full" />
+            <div className="flex gap-4 w-full md:w-auto">
+                <Skeleton className="h-10 w-full md:w-[180px]" />
+                <Skeleton className="h-10 w-full md:w-[180px]" />
+            </div>
+        </div>
+    );
   }
 
   return (

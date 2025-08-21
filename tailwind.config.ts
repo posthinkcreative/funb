@@ -106,7 +106,7 @@ export default {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'scroll': 'scroll 20s linear infinite',
+        'scroll': 'scroll 40s linear infinite',
         'scroll-speakers': 'scroll-speakers 60s linear infinite',
       },
     },

@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <>
       <HeroCarousel />
-      <section className="py-24">
+      <section className="py-12">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold font-headline mb-4 text-accent">
             Unlock Your Potential with FunB
@@ -28,7 +28,7 @@ export default function Home() {
 
       <CompanyLogos />
 
-      <section className="py-16 text-center bg-background">
+      <section className="py-12 text-center bg-background">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold font-headline text-accent">
             FUN-B 3rd Bootcamp 2025

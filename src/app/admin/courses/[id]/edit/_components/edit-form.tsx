@@ -23,12 +23,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Course } from "@/types"
-import { Separator } from "@/components/ui/separator"
-import { Trash, GripVertical, PlusCircle } from "lucide-react"
+import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DatePicker } from "@/components/ui/datepicker"
 import { useToast } from "@/hooks/use-toast"
 import { updateCourse } from "@/actions/courses"
+import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Helper to parse duration string like "1hr 15min"
 const parseDuration = (duration: string) => {
@@ -65,6 +66,7 @@ const formSchema = z.object({
   courseTime: z.string().optional(),
   level: z.string().optional(),
   schedule: z.string().optional(),
+  status: z.enum(['Published', 'Draft']),
   features: z.array(z.object({ value: z.string().min(1, { message: "Please enter a value." }) })),
   modules: z.array(
     z.object({
@@ -80,22 +82,7 @@ const formSchema = z.object({
       ),
     })
   ),
-}).refine(data => {
-    for (const module of data.modules) {
-        for (const lesson of module.lessons) {
-            if ((lesson.durationHours ?? 0) > 0 || (lesson.durationMinutes ?? 0) > 0) {
-                return true;
-            }
-        }
-    }
-    // We can refine this further if at least one lesson must have a duration
-    return true; 
-}, {
-    // This is a bit of a hack, we can apply the error to a specific lesson if needed
-    message: "At least one lesson must have a duration greater than 0.",
-    path: ["modules"], 
 });
-
 
 interface EditCourseFormProps {
   course: Course;
@@ -106,6 +93,11 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
   const [draggedModuleIndex, setDraggedModuleIndex] = React.useState<number | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -120,6 +112,7 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
       courseTime: course.courseTime || "",
       level: course.level || "Beginner",
       schedule: course.schedule || "Flexible",
+      status: course.status,
       features: course.features.map(feature => ({ value: feature })),
       modules: course.modules.map(module => ({
         ...module,
@@ -146,7 +139,6 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
     name: "modules",
   });
 
-  // This handler will be used by both buttons, but with a different status.
   const handleSave = (status: "Published" | "Draft") => async (values: z.infer<typeof formSchema>) => {
     try {
         const result = await updateCourse(course.id, { ...values, status });
@@ -178,26 +170,28 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
     }
   };
 
-  // --- Feature Drag Handlers ---
   const handleFeatureDragStart = (index: number) => {
     setDraggedFeatureIndex(index);
   };
+
   const handleFeatureDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault(); 
   };
+
   const handleFeatureDrop = (index: number) => {
     if (draggedFeatureIndex === null) return;
     moveFeature(draggedFeatureIndex, index);
     setDraggedFeatureIndex(null);
   };
 
-  // --- Module Drag Handlers ---
   const handleModuleDragStart = (index: number) => {
     setDraggedModuleIndex(index);
   };
+
   const handleModuleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
+
   const handleModuleDrop = (index: number) => {
     if (draggedModuleIndex === null) return;
     moveModule(draggedModuleIndex, index);
@@ -207,12 +201,59 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
   const watchedImageUrl = form.watch("imageUrl");
   const watchedVideoUrl = form.watch("videoUrl");
 
+  if (!isMounted) {
+    return (
+        <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                    <Card>
+                        <CardHeader><Skeleton className="h-8 w-48" /></CardHeader>
+                        <CardContent className="space-y-6">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-24 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><Skeleton className="h-8 w-48" /></CardHeader>
+                        <CardContent><Skeleton className="h-48 w-full" /></CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1 space-y-8">
+                    <Card>
+                        <CardHeader><Skeleton className="h-8 w-48" /></CardHeader>
+                        <CardContent className="space-y-6">
+                             <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><Skeleton className="h-8 w-48" /></CardHeader>
+                        <CardContent className="space-y-6">
+                             <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                         <CardHeader><Skeleton className="h-8 w-48" /></CardHeader>
+                         <CardContent><Skeleton className="h-32 w-full" /></CardContent>
+                    </Card>
+                    <div className="space-y-2">
+                        <Skeleton className="h-11 w-full" />
+                        <Skeleton className="h-11 w-full" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+  }
+
+
   return (
     <Form {...form}>
       <form className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Main Content Column */}
           <div className="lg:col-span-2 space-y-8">
             <Card>
               <CardHeader>
@@ -247,7 +288,7 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
                           {...field}
                         />
                       </FormControl>
-                       <FormDescription>
+                      <FormDescription>
                         A short description of the course.
                       </FormDescription>
                       <FormMessage />
@@ -311,11 +352,11 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>Course Content</CardTitle>
-                    <CardDescription>Organize your course into modules and lessons. Drag to reorder.</CardDescription>
+                    <CardDescription>Organize your course into modules and lessons. Drag to reorder or use arrows.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        <Accordion type="multiple" className="w-full">
+                        <Accordion type="multiple" className="w-full" defaultValue={[`module-${moduleFields[0]?.id}`]}>
                             {moduleFields.map((module, moduleIndex) => (
                                 <div
                                     key={module.id}
@@ -323,16 +364,15 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
                                     onDragStart={() => handleModuleDragStart(moduleIndex)}
                                     onDragOver={handleModuleDragOver}
                                     onDrop={() => handleModuleDrop(moduleIndex)}
-                                    className={`transition-opacity ${draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100'}`}
+                                    className={cn("border rounded-lg bg-muted/50", `transition-opacity ${draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100'}`)}
                                 >
                                     <ModuleItem
                                         moduleIndex={moduleIndex} 
                                         control={form.control}
                                         removeModule={removeModule}
-                                        moveLesson={(from, to) => {
-                                            const { move } = useFieldArray({ control: form.control, name: `modules.${moduleIndex}.lessons` });
-                                            move(from, to);
-                                        }}
+                                        moveModule={moveModule}
+                                        isFirst={moduleIndex === 0}
+                                        isLast={moduleIndex === moduleFields.length - 1}
                                     />
                                 </div>
                             ))}
@@ -352,7 +392,6 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
             </Card>
           </div>
 
-          {/* Sidebar Column */}
           <div className="lg:col-span-1 space-y-8">
             <Card>
                 <CardHeader>
@@ -481,7 +520,7 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>What You'll Learn</CardTitle>
-                    <CardDescription>List the key skills students will gain. Drag to reorder.</CardDescription>
+                    <CardDescription>List the key skills students will gain. Drag to reorder or use arrows.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {featureFields.map((field, index) => (
@@ -493,7 +532,7 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
                             onDragOver={handleFeatureDragOver}
                             onDrop={() => handleFeatureDrop(index)}
                         >
-                            <Button type="button" variant="ghost" size="icon" className="cursor-grab">
+                            <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex">
                                 <GripVertical />
                                 <span className="sr-only">Drag to reorder</span>
                             </Button>
@@ -509,6 +548,16 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
                                 </FormItem>
                                 )}
                             />
+                            <div className="flex flex-col">
+                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === 0} onClick={() => moveFeature(index, index - 1)}>
+                                    <ArrowUp className="h-4 w-4" />
+                                    <span className="sr-only">Move Up</span>
+                                </Button>
+                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === featureFields.length - 1} onClick={() => moveFeature(index, index + 1)}>
+                                    <ArrowDown className="h-4 w-4" />
+                                    <span className="sr-only">Move Down</span>
+                                </Button>
+                            </div>
                             <Button type="button" variant="destructive" size="icon" onClick={() => removeFeature(index)}>
                                 <Trash />
                                 <span className="sr-only">Remove feature</span>
@@ -542,9 +591,22 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
   )
 }
 
-// Sub-component for a single module in the form
-function ModuleItem({ moduleIndex, control, removeModule, moveLesson }: { moduleIndex: number, control: any, removeModule: (index: number) => void, moveLesson: (from: number, to: number) => void }) {
-    const { fields: lessonFields, append: appendLesson, remove: removeLesson } = useFieldArray({
+function ModuleItem({ 
+    moduleIndex, 
+    control, 
+    removeModule,
+    moveModule,
+    isFirst,
+    isLast 
+}: { 
+    moduleIndex: number, 
+    control: any, 
+    removeModule: (index: number) => void,
+    moveModule: (from: number, to: number) => void,
+    isFirst: boolean,
+    isLast: boolean
+}) {
+    const { fields: lessonFields, append: appendLesson, remove: removeLesson, move: moveLesson } = useFieldArray({
         control,
         name: `modules.${moduleIndex}.lessons`,
     });
@@ -565,10 +627,10 @@ function ModuleItem({ moduleIndex, control, removeModule, moveLesson }: { module
     };
 
     return (
-        <AccordionItem value={`module-${moduleIndex}`} className="bg-muted/50 p-4 rounded-lg border">
-            <div className="flex items-center justify-between">
+        <AccordionItem value={`module-${moduleIndex}`} className="border-none">
+            <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-2 flex-grow">
-                    <Button type="button" variant="ghost" size="icon" className="cursor-grab">
+                    <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex">
                         <GripVertical />
                     </Button>
                     <FormField
@@ -585,65 +647,90 @@ function ModuleItem({ moduleIndex, control, removeModule, moveLesson }: { module
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <AccordionTrigger />
+                    <div className="flex flex-col">
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={isFirst} onClick={() => moveModule(moduleIndex, moduleIndex - 1)}>
+                            <ArrowUp className="h-4 w-4" />
+                            <span className="sr-only">Move Module Up</span>
+                        </Button>
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={isLast} onClick={() => moveModule(moduleIndex, moduleIndex + 1)}>
+                            <ArrowDown className="h-4 w-4" />
+                            <span className="sr-only">Move Module Down</span>
+                        </Button>
+                    </div>
+                    <AccordionTrigger className="p-2"/>
                     <Button type="button" variant="destructive" size="icon" onClick={() => removeModule(moduleIndex)}>
                         <Trash />
                     </Button>
                 </div>
             </div>
-            <AccordionContent className="pt-4 pl-12 pr-4 space-y-4">
+            <AccordionContent className="pt-0 pb-4 pl-12 pr-4 space-y-4">
                  {lessonFields.map((lesson, lessonIndex) => (
                     <div 
                         key={lesson.id} 
-                        className={`flex items-center gap-2 transition-opacity ${draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100'}`}
+                        className={`flex items-start gap-2 transition-opacity ${draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100'}`}
                         draggable
                         onDragStart={() => handleLessonDragStart(lessonIndex)}
                         onDragOver={handleLessonDragOver}
                         onDrop={() => handleLessonDrop(lessonIndex)}
                     >
-                        <GripVertical className="cursor-grab text-muted-foreground"/>
-                         <FormField
-                            control={control}
-                            name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`}
-                            render={({ field }) => (
-                            <FormItem className="flex-grow">
-                                <FormControl>
-                                    <Input placeholder="Lesson Title" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <div className="flex items-start gap-2">
+                        <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex mt-1">
+                            <GripVertical className="w-5 h-5"/>
+                        </Button>
+                        <div className="flex-grow space-y-2">
                             <FormField
                                 control={control}
-                                name={`modules.${moduleIndex}.lessons.${lessonIndex}.durationHours`}
+                                name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`}
                                 render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-xs">Jam</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="0" {...field} className="w-20"/>
+                                        <Input placeholder="Lesson Title" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={control}
-                                name={`modules.${moduleIndex}.lessons.${lessonIndex}.durationMinutes`}
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-xs">Menit</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="0" {...field} className="w-20"/>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
+                            <div className="flex items-start gap-2">
+                                <FormField
+                                    control={control}
+                                    name={`modules.${moduleIndex}.lessons.${lessonIndex}.durationHours`}
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs">Jam</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="0" {...field} className="w-20"/>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={control}
+                                    name={`modules.${moduleIndex}.lessons.${lessonIndex}.durationMinutes`}
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs">Menit</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="0" {...field} className="w-20"/>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
-                        <Button type="button" variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => removeLesson(lessonIndex)}>
+                        <div className="flex flex-col mt-1">
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={lessonIndex === 0} onClick={() => moveLesson(lessonIndex, lessonIndex - 1)}>
+                                <ArrowUp className="h-4 w-4" />
+                                <span className="sr-only">Move Lesson Up</span>
+                            </Button>
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={lessonIndex === lessonFields.length - 1} onClick={() => moveLesson(lessonIndex, lessonIndex + 1)}>
+                                <ArrowDown className="h-4 w-4" />
+                                <span className="sr-only">Move Lesson Down</span>
+                            </Button>
+                        </div>
+                        <Button type="button" variant="ghost" size="icon" className="text-destructive hover:text-destructive mt-1" onClick={() => removeLesson(lessonIndex)}>
                             <Trash className="w-4 h-4"/>
+                            <span className="sr-only">Remove Lesson</span>
                         </Button>
                     </div>
                 ))}

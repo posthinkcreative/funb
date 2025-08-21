@@ -1,3 +1,6 @@
+
+'use client';
+
 import React from 'react';
 import {
   SidebarProvider,
@@ -10,10 +13,29 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarFooter,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { LayoutGrid, BookCopy, Users, Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import AdminFooter from './_components/admin-footer';
+import { cn } from '@/lib/utils';
+
+// Helper component to close sidebar after navigation on mobile devices
+const SidebarClosingLink = ({ href, children, className }: { href: string; children: React.ReactNode, className?: string }) => {
+  const { setOpenMobile } = useSidebar();
+
+  const handleClick = () => {
+    // Close sidebar on mobile view only
+    setOpenMobile(false);
+  };
+
+  return (
+    <Link href={href} onClick={handleClick} className={cn("flex items-center gap-2", className)}>
+      {children}
+    </Link>
+  );
+};
+
 
 export default function AdminLayout({
   children,
@@ -36,22 +58,22 @@ export default function AdminLayout({
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Dashboard">
-                  <Link href="/admin/dashboard"><LayoutGrid /><span>Dashboard</span></Link>
+                  <SidebarClosingLink href="/admin/dashboard"><LayoutGrid /><span>Dashboard</span></SidebarClosingLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Courses">
-                    <Link href="/admin/courses"><BookCopy /><span>Courses</span></Link>
+                    <SidebarClosingLink href="/admin/courses"><BookCopy /><span>Courses</span></SidebarClosingLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Students">
-                    <Link href="#"><Users /><span>Students</span></Link>
+                    <SidebarClosingLink href="#"><Users /><span>Students</span></SidebarClosingLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Settings">
-                    <Link href="#"><Settings /><span>Settings</span></Link>
+                    <SidebarClosingLink href="#"><Settings /><span>Settings</span></SidebarClosingLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -60,7 +82,7 @@ export default function AdminLayout({
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Logout">
-                        <Link href="/"><LogOut /><span>Logout</span></Link>
+                        <SidebarClosingLink href="/"><LogOut /><span>Logout</span></SidebarClosingLink>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -71,7 +93,7 @@ export default function AdminLayout({
                 <SidebarTrigger />
                 <h1 className="text-xl font-semibold font-headline">Dashboard</h1>
             </header>
-            <main className="flex-1 max-w-none">
+            <main className="flex-1 overflow-x-auto">
                 {children}
             </main>
             <AdminFooter />

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from './ui/skeleton';
 
 export default function HeroForm() {
   const [isMounted, setIsMounted] = useState(false);
@@ -13,8 +14,15 @@ export default function HeroForm() {
   }, []);
 
   if (!isMounted) {
-    // Render nothing on the server and during the initial client render
-    return null;
+    return (
+        <div className="w-full max-w-sm space-y-2">
+            <div className="flex space-x-2">
+                <Skeleton className="h-10 max-w-lg flex-1" />
+                <Skeleton className="h-10 w-24" />
+            </div>
+            <Skeleton className="h-4 w-full" />
+        </div>
+    )
   }
 
   return (

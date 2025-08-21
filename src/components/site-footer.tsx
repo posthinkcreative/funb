@@ -15,9 +15,12 @@ export default function SiteFooter() {
     setIsMounted(true);
   }, []);
 
+
   if (!isMounted) {
+    // Render a skeleton or null on the server to avoid hydration mismatch
     return null;
   }
+
 
   return (
     <footer 
@@ -30,7 +33,6 @@ export default function SiteFooter() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8">
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-                <Image src="/logo.png" alt="FunB Logo" width={32} height={32} />
                 <span className="text-xl font-bold font-headline text-white">FunB</span>
             </Link>
             <p className="text-white/80 text-sm max-w-xs">
