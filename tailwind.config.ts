@@ -93,9 +93,8 @@ export default {
           },
         },
         'scroll': {
-          'to': {
-            transform: 'translateX(calc(-100% - 1rem * 4))',
-          },
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-100%)' },
         },
         'scroll-speakers': {
           'to': {

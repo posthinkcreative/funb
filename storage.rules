@@ -1,0 +1,36 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // Use custom claims for role checks. This is the most reliable method for Storage Rules.
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    // --- Rules for Hero Images & Sponsor Logos ---
+    // All uploads go into this folder. It's publicly readable.
+    match /hero-images/{allPaths=**} {
+      allow get: if true; 
+      allow create, update, delete: if isAdmin();
+    }
+
+    // --- Rules for Website Assets (e.g., Bootcamp Video) ---
+    match /website-assets/{allPaths=**} {
+      allow get: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // --- Default Deny Rule ---
+    // Deny all other access by default for security.
+    match /{allOtherPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,11 +1,13 @@
-
 'use client';
 
 import Link from "next/link";
 import Image from "next/image";
-import { Menu } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { Menu, LogOut, LayoutGrid } from "lucide-react";
 import React, { Suspense } from 'react';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { doc } from 'firebase/firestore';
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -18,54 +20,105 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+
+interface UserProfile {
+    role?: 'admin' | 'customer';
+}
 
 function UserNav() {
+    const { user } = useUser();
+    const auth = useAuth();
+    const firestore = useFirestore();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const userDocRef = useMemoFirebase(() => {
+        if (!user) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [firestore, user]);
+
+    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+
+    const handleLogout = async () => {
+        await signOut(auth);
+        toast({
+            title: "Logged Out",
+            description: "You have been successfully logged out.",
+        });
+        router.push('/');
+    };
+
+    if (isProfileLoading || !user) {
+        return <div className="h-9 w-9 rounded-full bg-muted animate-pulse"></div>;
+    }
+
+    const getInitials = (name: string | null | undefined) => {
+        if (!name) return 'U';
+        const names = name.split(' ');
+        if (names.length > 1 && names[1]) {
+            return names[0][0] + names[names.length - 1][0];
+        }
+        return name.substring(0, 2);
+    }
+
+    const isAdmin = userProfile?.role === 'admin';
+
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-9 w-9">
-              <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="@shadcn" />
-              <AvatarFallback>DU</AvatarFallback>
+              <AvatarImage src={user.photoURL || `https://avatar.vercel.sh/${user.uid}.png`} data-ai-hint="user avatar" alt={user.displayName || 'User'} />
+              <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Demo User</p>
+              <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                demo@example.com
+                {user.email}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/account/profile">My Account</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/account/my-courses">My Courses</Link>
-          </DropdownMenuItem>
+          {isAdmin ? (
+            <>
+                <DropdownMenuItem asChild>
+                    <Link href="/admin/dashboard">
+                        <LayoutGrid className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                    </Link>
+                </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+                <DropdownMenuItem asChild>
+                    <Link href="/account/profile">My Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/account/my-courses">My Webinars</Link>
+                </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-             <Link href="/">Logout</Link>
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Logout</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     )
   }
 
-// This component uses useSearchParams, so it must be a client component.
-// We extract it to keep the main header component as a Server Component if possible,
-// and to wrap this part in a Suspense boundary.
 function HeaderContent() {
-  const searchParams = useSearchParams();
-  const isLoggedIn = searchParams.get('loggedIn') === 'true';
+  const { user, isUserLoading } = useUser();
 
   const navLinks = [
-    { href: "/courses", label: "Courses" },
+    { href: "/courses", label: "Webinar" },
     { href: "#", label: "Bootcamps" },
-    { href: "/admin/dashboard", label: "Admin" },
   ];
 
   return (
@@ -127,7 +180,9 @@ function HeaderContent() {
         </Sheet>
         
         <div className="flex flex-1 items-center justify-end space-x-2">
-            {isLoggedIn ? (
+            {isUserLoading ? (
+              <div className="h-8 w-8 rounded-full bg-gray-300 animate-pulse"></div>
+            ) : user ? (
                 <UserNav />
             ) : (
                 <>
@@ -145,9 +200,6 @@ function HeaderContent() {
   );
 }
 
-// The main export is a clean component that wraps the client-side logic
-// in a Suspense boundary. This prevents the entire app from being client-rendered
-// just because the header needs to read search params.
 export default function SiteHeader() {
   return (
     <Suspense fallback={<div className="h-16 border-b"></div>}>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -15,19 +14,36 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course }: CourseCardProps) {
-    const [formattedPrice, setFormattedPrice] = React.useState('');
+    const [displayPrice, setDisplayPrice] = React.useState({ original: '', final: '' });
 
     React.useEffect(() => {
-        // Formatting the price on the client side to avoid hydration mismatch issues.
-        // The server and client might have different locales, leading to different formatting.
-        const formatted = new Intl.NumberFormat("id-ID", {
+        const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(course.price);
-        setFormattedPrice(formatted);
-    }, [course.price]);
+        }).format(value);
+
+        const { price, discountType, discountValue } = course;
+        let finalPrice: number | null = null;
+        if (discountType && discountType !== 'none' && discountValue && discountValue > 0) {
+            if (discountType === 'percentage') {
+                finalPrice = price * (1 - discountValue / 100);
+            } else if (discountType === 'nominal') {
+                finalPrice = price - discountValue;
+            }
+        }
+        
+        setDisplayPrice({
+            original: formatCurrency(price),
+            final: finalPrice !== null ? formatCurrency(finalPrice) : ''
+        });
+
+    }, [course]);
+
+    const courseDateObject = course.courseDate && typeof (course.courseDate as any).toDate === 'function' 
+        ? (course.courseDate as any).toDate() 
+        : course.courseDate ? new Date(course.courseDate) : null;
 
   return (
     <Link href={`/courses/${course.id}`}>
@@ -42,7 +58,16 @@ export function CourseCard({ course }: CourseCardProps) {
               height={400}
               className="w-full h-48 object-cover"
             />
-             <Badge className="absolute top-3 right-3" variant="default">{formattedPrice || '...'}</Badge>
+             <Badge className="absolute top-3 right-3" variant="default">
+                {displayPrice.final ? (
+                    <>
+                        <span className="text-xs line-through opacity-70 mr-2">{displayPrice.original}</span>
+                        <span>{displayPrice.final}</span>
+                    </>
+                ) : (
+                    displayPrice.original || '...'
+                )}
+             </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
@@ -50,10 +75,10 @@ export function CourseCard({ course }: CourseCardProps) {
           <h3 className="text-lg font-bold font-headline mb-2">{course.title}</h3>
           <p className="text-sm text-muted-foreground mb-4">{course.instructor.name}</p>
           <div className="space-y-2 text-sm text-muted-foreground">
-             {course.courseDate && (
+             {courseDateObject && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>{format(new Date(course.courseDate), "dd MMMM yyyy")}</span>
+                <span>{format(courseDateObject, "dd MMMM yyyy")}</span>
               </div>
             )}
             {course.courseTime && (

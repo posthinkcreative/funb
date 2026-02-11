@@ -34,6 +34,8 @@ export type Course = {
   description: string;
   longDescription: string;
   price: number;
+  discountType?: 'none' | 'percentage' | 'nominal';
+  discountValue?: number;
   imageUrl: string;
   videoUrl?: string;
   rating: number;
@@ -46,26 +48,27 @@ export type Course = {
   courseTime?: string;
   level?: string;
   schedule?: string;
-  status: 'Published' | 'Draft';
+  status: 'Published' | 'Draft' | 'Archived';
+  createdAt?: any;
 };
 
-export type User = {
-  id: string;
+export type UserProfile = {
+  uid: string;
   name: string;
   email: string;
-  avatarUrl: string;
+  photoURL: string;
+  role: 'admin' | 'customer';
 };
+
+export type PractitionerCategory = 'Business' | 'Data Science' | 'Development' | 'Marketing' | 'Design';
 
 export type Speaker = {
   id: string;
   name: string;
   title: string;
   imageUrl: string;
-  category: {
-    name: string;
-    icon: React.ComponentType<{ className?: string }>;
-    color: string;
-  };
+  categoryName: PractitionerCategory;
+  sortOrder: number;
 };
 
 export type AlumniTestimonial = {
@@ -73,7 +76,7 @@ export type AlumniTestimonial = {
   name: string;
   batch: string;
   avatarUrl: string;
-  bgColor: string; // Changed from className to a color value
+  bgColor: string;
   before: {
     role: string;
     university: string;
@@ -83,4 +86,21 @@ export type AlumniTestimonial = {
     company: string;
     companyLogoUrl: string;
   };
+  sortOrder: number;
 };
+
+export interface HeroCarouselItem {
+  title: string;
+  imageUrl: string;
+  ctaText: string;
+  ctaLink: string;
+  sortOrder: number;
+}
+
+export interface SponsorLogo {
+  name: string;
+  imageUrl: string;
+  sortOrder: number;
+  ctaText: string;
+  ctaLink: string;
+}

@@ -1,19 +1,32 @@
-// src/lib/config.ts
+import { z } from "zod";
 
-/**
- * Di sini Anda dapat mengelola daftar logo perusahaan yang akan ditampilkan di halaman utama.
- * Cukup tambahkan atau hapus item dari array `companyLogos` di bawah ini.
- *
- * Pastikan Anda menempatkan file gambar logo di dalam folder `public/logos/`.
- * Format yang didukung: .svg, .png, .jpg
- */
-
-export const companyLogos = [
-  { name: 'Company 1', src: '/logos/1.png' },
-  { name: 'Company 2', src: '/logos/2.png' },
-  { name: 'Company 3', src: '/logos/3.png' },
-  { name: 'Company 4', src: '/logos/4.png' },
-  { name: 'Company 5', src: '/logos/5.png' },
-  // Anda bisa menambahkan lebih banyak logo di sini
-  // { name: 'Company 6', src: '/logos/6.png' },
-];
+export const courseFormSchema = z.object({
+  title: z.string().min(2, { message: "Title must be at least 2 characters." }),
+  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
+  price: z.coerce.number(),
+  discountType: z.enum(['none', 'percentage', 'nominal']).optional(),
+  discountValue: z.coerce.number().optional(),
+  category: z.string(),
+  imageUrl: z.string().min(1, { message: "An image is required." }),
+  videoUrl: z.string().optional(),
+  courseDate: z.date().optional(),
+  courseTime: z.string().optional(),
+  level: z.string().optional(),
+  schedule: z.string().optional(),
+  status: z.enum(['Published', 'Draft', 'Archived']),
+  features: z.array(z.object({ value: z.string().min(1, { message: "Please enter a value." }) })),
+  modules: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string().min(1, { message: "Module title is required." }),
+      lessons: z.array(
+        z.object({
+          id: z.string(),
+          title: z.string().min(1, { message: "Lesson title is required." }),
+          durationHours: z.coerce.number().min(0).optional(),
+          durationMinutes: z.coerce.number().min(0).optional(),
+        })
+      ),
+    })
+  ),
+});

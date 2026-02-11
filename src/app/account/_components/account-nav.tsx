@@ -1,12 +1,15 @@
-
 'use client'
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { User, BookMarked, Settings, LogOut } from "lucide-react"
+import { useAuth } from "@/firebase"
+import { signOut } from "firebase/auth"
+import React from "react"
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const navItems = [
   {
@@ -16,7 +19,7 @@ const navItems = [
   },
   {
     href: "/account/my-courses",
-    label: "My Courses",
+    label: "My Webinars",
     icon: BookMarked,
   },
   {
@@ -27,7 +30,22 @@ const navItems = [
 ]
 
 export function AccountNav() {
-  const pathname = usePathname()
+  const pathname = usePathname();
+  const auth = useAuth();
+  const { toast } = useToast();
+  
+  // No longer need useUser or role checks here,
+  // as the global guard ensures only authenticated customers see this.
+
+  const handleLogout = async () => {
+      await signOut(auth);
+      toast({
+          title: "Logged Out",
+          description: "You have been successfully logged out.",
+      });
+      // The global auth handler will redirect to /login
+  };
+
 
   return (
     <nav className="grid items-start gap-2">
@@ -42,12 +60,10 @@ export function AccountNav() {
           </Button>
         </Link>
       ))}
-       <Link href="/">
-         <Button variant="ghost" className="w-full justify-start">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-      </Link>
+       <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
     </nav>
   )
 }

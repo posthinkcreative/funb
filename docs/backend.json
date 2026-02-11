@@ -1,0 +1,576 @@
+{
+  "entities": {
+    "Course": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Course",
+      "type": "object",
+      "description": "Represents a course or bootcamp offered on the EduBoost platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the course."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the course or bootcamp."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the course content."
+        },
+        "instructorId": {
+          "type": "string",
+          "description": "Reference to the Instructor teaching the course. (Relationship: Instructor 1:N Course)"
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category the course belongs to. (Relationship: Category 1:N Course)"
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the course."
+        },
+        "discountType": {
+          "type": "string",
+          "description": "The type of discount, if any.",
+          "enum": ["none", "percentage", "nominal"]
+        },
+        "discountValue": {
+          "type": "number",
+          "description": "The value of the discount (percentage or nominal amount)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL or Base64 Data URI of the image representing the course.",
+          "format": "uri"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "The schedule of the course (e.g., days and times)."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "instructorId",
+        "categoryId",
+        "price",
+        "imageUrl",
+        "schedule"
+      ]
+    },
+    "Instructor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Instructor",
+      "type": "object",
+      "description": "Represents an instructor who teaches courses on the platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the instructor."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the instructor."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography of the instructor."
+        },
+        "profileImageUrl": {
+          "type": "string",
+          "description": "URL or Base64 Data URI of the instructor's profile image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "bio",
+        "profileImageUrl"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category of courses (e.g., 'Web Development', 'Data Science').",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the category."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the category."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the EduBoost platform.",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique identifier for the user, from Firebase Auth."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL or Base64 Data URI of the user's profile picture.",
+          "format": "uri"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["admin", "customer"]
+        },
+        "enrolledCourseIds": {
+          "type": "array",
+          "description": "An array of course IDs that the user is enrolled in.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "uid",
+        "email"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a transaction for a course purchase.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the transaction."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who made the transaction. (Relationship: User 1:N Transaction)"
+        },
+        "courseId": {
+          "type": "string",
+          "description": "Reference to the Course purchased in the transaction. (Relationship: Course 1:N Transaction)"
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "The date and time of the transaction.",
+          "format": "date-time"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount paid in the transaction."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method of payment used (e.g., 'iPaymu')."
+        },
+        "ipaymuReference": {
+          "type": "string",
+          "description": "Transaction id reference from payment gateway ipaymu."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "courseId",
+        "transactionDate",
+        "amount",
+        "paymentMethod"
+      ]
+    },
+    "HeroCarouselItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Hero Carousel Item",
+      "type": "object",
+      "description": "Represents a single slide in the homepage hero carousel.",
+      "properties": {
+        "imageUrl": {
+          "type": "string",
+          "description": "URL or Base64 Data URI of the background image for the slide.",
+          "format": "uri"
+        },
+        "title": {
+          "type": "string",
+          "description": "Main heading for the slide."
+        },
+        "ctaText": {
+          "type": "string",
+          "description": "Text for the call-to-action button."
+        },
+        "ctaLink": {
+          "type": "string",
+          "description": "Destination URL for the CTA button."
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "The order in which the slide should appear."
+        }
+      },
+      "required": [
+        "imageUrl",
+        "ctaText",
+        "ctaLink",
+        "sortOrder"
+      ]
+    },
+    "SponsorLogo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sponsor Logo",
+      "type": "object",
+      "description": "Represents a sponsor logo for the scrolling marquee.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the sponsor."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the sponsor logo image.",
+          "format": "uri"
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "The order in which the logo should appear."
+        },
+        "ctaText": {
+          "type": "string",
+          "description": "Text for the call-to-action button (if any)."
+        },
+        "ctaLink": {
+          "type": "string",
+          "description": "Destination URL for the CTA button (if any)."
+        }
+      },
+      "required": [
+        "name",
+        "imageUrl",
+        "sortOrder"
+      ]
+    },
+    "WebsiteSetting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Website Setting",
+      "type": "object",
+      "description": "Stores global settings for the website, like video URLs and intro text.",
+      "properties": {
+        "bootcampVideoUrl": {
+          "type": "string",
+          "description": "URL for the main bootcamp video on the homepage.",
+          "format": "uri"
+        },
+        "introTitle": {
+          "type": "string",
+          "description": "The main title for the intro section on the homepage. Supports newlines."
+        },
+        "introDescription": {
+          "type": "string",
+          "description": "The description text for the intro section on the homepage. Supports newlines."
+        },
+        "bootcampTitle": {
+          "type": "string",
+          "description": "The title for the bootcamp section."
+        },
+        "bootcampSubtitle": {
+          "type": "string",
+          "description": "The subtitle for the bootcamp section."
+        },
+        "practitionersTitle": {
+          "type": "string",
+          "description": "The title for the practitioners/speakers section."
+        },
+        "testimonialsTitle": {
+          "type": "string",
+          "description": "The title for the testimonials section."
+        }
+      },
+      "required": []
+    },
+    "Practitioner": {
+      "title": "Practitioner",
+      "type": "object",
+      "description": "Represents a practitioner or speaker featured on the website.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the practitioner."
+        },
+        "title": {
+          "type": "string",
+          "description": "The professional title of the practitioner."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the practitioner's photo.",
+          "format": "uri"
+        },
+        "categoryName": {
+          "type": "string",
+          "description": "The category the practitioner belongs to (e.g., 'Business', 'Design').",
+          "enum": ["Business", "Data Science", "Development", "Marketing", "Design"]
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "The order in which the practitioner should appear."
+        }
+      },
+      "required": [
+        "name",
+        "title",
+        "imageUrl",
+        "categoryName",
+        "sortOrder"
+      ]
+    },
+    "AlumniTestimonial": {
+      "title": "Alumni Testimonial",
+      "type": "object",
+      "description": "Represents a testimonial from a past student.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the alumni."
+        },
+        "batch": {
+          "type": "string",
+          "description": "The bootcamp batch the alumni was in."
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "URL of the alumni's profile picture.",
+          "format": "uri"
+        },
+        "bgColor": {
+          "type": "string",
+          "description": "Background color for the card header."
+        },
+        "before": {
+          "type": "object",
+          "properties": {
+            "role": { "type": "string" },
+            "university": { "type": "string" }
+          },
+          "required": ["role", "university"]
+        },
+        "after": {
+          "type": "object",
+          "properties": {
+            "role": { "type": "string" },
+            "company": { "type": "string" },
+            "companyLogoUrl": { "type": "string", "format": "uri" }
+          },
+          "required": ["role", "company", "companyLogoUrl"]
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "The order in which the testimonial should appear."
+        }
+      },
+      "required": [
+        "name",
+        "batch",
+        "avatarUrl",
+        "bgColor",
+        "before",
+        "after",
+        "sortOrder"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous",
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/courses/{courseId}",
+        "definition": {
+          "entityName": "Course",
+          "schema": {
+            "$ref": "#/backend/entities/Course"
+          },
+          "description": "Stores course information. Includes the instructorId and categoryId.",
+          "params": [
+            {
+              "name": "courseId",
+              "description": "Unique identifier for the course."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/instructors/{instructorId}",
+        "definition": {
+          "entityName": "Instructor",
+          "schema": {
+            "$ref": "#/backend/entities/Instructor"
+          },
+          "description": "Stores instructor information.",
+          "params": [
+            {
+              "name": "instructorId",
+              "description": "Unique identifier for the instructor."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores course categories.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "Unique identifier for the category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information and enrolled courses.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Stores transaction data. Includes denormalized 'userId' and 'courseId' for authorization independence.",
+          "params": [
+            {
+              "name": "transactionId",
+              "description": "Unique identifier for the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/heroItems/{itemId}",
+        "definition": {
+          "entityName": "HeroCarouselItem",
+          "schema": {
+            "$ref": "#/backend/entities/HeroCarouselItem"
+          },
+          "description": "Stores data for each slide in the homepage hero carousel.",
+          "params": [
+            {
+              "name": "itemId",
+              "description": "Unique identifier for the hero item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sponsor_logos/{logoId}",
+        "definition": {
+          "entityName": "SponsorLogo",
+          "schema": {
+            "$ref": "#/backend/entities/SponsorLogo"
+          },
+          "description": "Stores sponsor logos for the homepage marquee.",
+          "params": [
+            {
+              "name": "logoId",
+              "description": "Unique identifier for the sponsor logo."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/website_settings/{settingId}",
+        "definition": {
+          "entityName": "WebsiteSetting",
+          "schema": {
+            "$ref": "#/backend/entities/WebsiteSetting"
+          },
+          "description": "Stores global website settings. Expected to be a singleton document (e.g., id 'main').",
+          "params": [
+            {
+              "name": "settingId",
+              "description": "The identifier for the setting document (e.g., 'main')."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/practitioners/{practitionerId}",
+        "definition": {
+          "entityName": "Practitioner",
+          "schema": {
+            "$ref": "#/backend/entities/Practitioner"
+          },
+          "description": "Stores information about featured practitioners/speakers.",
+          "params": [
+            {
+              "name": "practitionerId",
+              "description": "Unique identifier for the practitioner."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/alumniTestimonials/{testimonialId}",
+        "definition": {
+          "entityName": "AlumniTestimonial",
+          "schema": {
+            "$ref": "#/backend/entities/AlumniTestimonial"
+          },
+          "description": "Stores alumni testimonials for the homepage.",
+          "params": [
+            {
+              "name": "testimonialId",
+              "description": "Unique identifier for the testimonial."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support EduBoost's course catalog, transactions, and user management features, while prioritizing security, scalability, and debuggability. The design emphasizes authorization independence through denormalization. User data is stored under `/users/{userId}` which gives ownership to each user over his data, and it simplifies security rules. Courses, Categories and Instructors are stored at the root level because they don't belong to a specific user. Transactions are stored under `/transactions/{transactionId}` and includes denormalized `userId` and `courseId` to enable efficient querying and simplified security rules. The structure aims to support the required QAPs by segregating user data and using explicit membership maps where needed (though not explicitly present in these entities).\n\n**Authorization Independence:**\nThe design avoids hierarchical authorization dependencies by storing all necessary authorization information directly within the documents. For example, the `transactions` collection includes `userId` and `courseId`, thus authorization rules don't need to `get()` data from `users` or `courses` collections.\n\n**QAPs Support:**\nThe structure uses structural segregation to ensure secure `list` operations. User specific data is stored under the `/users/{userId}` collection, ensuring that listing user data is restricted to the user themselves."
+  }
+}

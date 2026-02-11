@@ -20,8 +20,27 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ value, onSelect, className }: DatePickerProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(value);
+
+  React.useEffect(() => {
+    // Sync the internal state if the external value changes
+    setSelectedDate(value);
+  }, [value]);
+
+  const handleConfirm = () => {
+    onSelect(selectedDate);
+    setIsOpen(false);
+  };
+
+  const handleCancel = () => {
+    // Revert internal state to the original prop value and close
+    setSelectedDate(value);
+    setIsOpen(false);
+  };
+  
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -38,10 +57,14 @@ export function DatePicker({ value, onSelect, className }: DatePickerProps) {
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
-          selected={value}
-          onSelect={onSelect}
+          selected={selectedDate}
+          onSelect={setSelectedDate}
           initialFocus
         />
+        <div className="flex justify-end gap-2 p-2 border-t">
+          <Button variant="ghost" size="sm" onClick={handleCancel}>Cancel</Button>
+          <Button size="sm" onClick={handleConfirm}>Confirm</Button>
+        </div>
       </PopoverContent>
     </Popover>
   )

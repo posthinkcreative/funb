@@ -1,8 +1,12 @@
 'use client'
 
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useAuth, useFirestore } from "@/firebase";
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { Eye, EyeOff } from "lucide-react";
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,30 +21,64 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 
 export default function LoginContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const auth = useAuth();
+  const firestore = useFirestore();
+  
+  const [email, setEmail] = useState('demo@example.com');
+  const [password, setPassword] = useState('password');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
+    setIsSubmitting(true);
     
-    toast({
-        title: "Login Successful",
-        description: "Welcome back! You are now logged in.",
-    });
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // The global AuthHandler in root-client-layout.tsx will now handle the redirection.
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
+  }
 
-    const redirectUrl = searchParams.get('redirect');
+  const handleGoogleSignIn = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    const provider = new GoogleAuthProvider();
+    
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const userRef = doc(firestore, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-    if (redirectUrl) {
-        // If a redirect URL is present (e.g., from checkout), go there.
-        // Also append loggedIn=true to ensure the header updates.
-        const urlWithLoginState = redirectUrl.includes('?') 
-            ? `${redirectUrl}&loggedIn=true`
-            : `${redirectUrl}?loggedIn=true`;
-        router.push(urlWithLoginState);
-    } else {
-        // Otherwise, redirect to the user's account profile page.
-        router.push("/account/profile?loggedIn=true");
+      // If the user is new (e.g., first sign-in with Google), create their document.
+      if (!userSnap.exists()) {
+          await setDoc(userRef, {
+              uid: user.uid,
+              email: user.email,
+              name: user.displayName,
+              photoURL: user.photoURL,
+              role: 'customer', // Default role
+          });
+      }
+      // The global AuthHandler will detect the new user state and redirect.
+    } catch (error: any) {
+        if (error.code !== 'auth/popup-closed-by-user') {
+            console.error("Google Sign-In Error:", error);
+            toast({
+                title: "Google Sign-In Failed",
+                description: error.message,
+                variant: "destructive",
+            });
+        }
+        setIsSubmitting(false);
     }
   }
 
@@ -62,7 +100,9 @@ export default function LoginContent() {
                 type="email"
                 placeholder="demo@example.com"
                 required
-                defaultValue="demo@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -75,13 +115,31 @@ export default function LoginContent() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input id="password" type="password" required defaultValue="password" />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
-            <Button variant="outline" className="w-full">
-              Login with Google
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn} disabled={isSubmitting}>
+              {isSubmitting ? 'Please wait...' : 'Login with Google'}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">

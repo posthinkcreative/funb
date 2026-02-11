@@ -1,9 +1,8 @@
-
 'use client';
 
 export function InstagramFeed() {
   return (
-    <section className="py-12 bg-secondary/50">
+    <section className="pt-12 pb-6 bg-secondary/50">
       <div className="container mx-auto px-4">
          <h2 className="text-3xl md:text-4xl font-bold font-headline text-center mb-8 text-accent">
           Follow Our Journey on Instagram
@@ -15,7 +14,6 @@ export function InstagramFeed() {
             title="Instagram Feed Widget"
             scrolling="no"
           ></iframe>
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-background z-10"></div>
         </div>
       </div>
     </section>

@@ -1,5 +1,5 @@
 
-import type { Instructor, Review, Course, Module, Speaker, AlumniTestimonial } from '@/types';
+import type { Instructor, Review, Course, Module, Speaker } from '@/types';
 import { Briefcase, BarChart, Code, Megaphone, Palette, ChevronDown } from 'lucide-react';
 
 export const instructors: Instructor[] = [
@@ -65,6 +65,8 @@ export const courses: Course[] = [
     description: 'Learn to build modern web applications with the MERN stack.',
     longDescription: 'This comprehensive bootcamp covers everything you need to know to become a full-stack web developer. You will learn HTML, CSS, JavaScript, React, Node.js, Express, and MongoDB. The course includes hands-on projects and real-world examples to solidify your understanding.',
     price: 7485000,
+    discountType: 'nominal',
+    discountValue: 1000000,
     imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/1.jpg?alt=media&token=e5932ba0-d72f-4560-b905-1d404655ba9c',
     videoUrl: videoUrl,
     rating: 4.8,
@@ -86,6 +88,8 @@ export const courses: Course[] = [
     description: 'Master the art of user interface and user experience design.',
     longDescription: 'In this masterclass, you will learn the principles of UI/UX design, from user research and wireframing to prototyping and usability testing. You will work on real-world projects to build a strong portfolio.',
     price: 5985000,
+    discountType: 'percentage',
+    discountValue: 20,
     imageUrl: 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907.firebasestorage.app/o/2.jpg?alt=media&token=147d6606-cf3b-4953-a4ce-7d75f45dcce1',
     videoUrl: videoUrl,
     rating: 4.9,
@@ -175,261 +179,5 @@ export const courses: Course[] = [
     level: 'Intermediate',
     schedule: 'Fixed',
     status: 'Draft',
-  },
-];
-
-export const speakers: Speaker[] = [
-  {
-    id: 'spk-1',
-    name: 'Antonius Wahono',
-    title: 'Legal Consultant',
-    imageUrl: '/speakers/speaker-1.jpg',
-    category: {
-      name: 'Business',
-      icon: Briefcase,
-      color: '#9333ea',
-    },
-  },
-  {
-    id: 'spk-2',
-    name: 'Aria Guna',
-    title: 'Founder of Neosoft',
-    imageUrl: '/speakers/speaker-2.jpg',
-    category: {
-      name: 'Data Science',
-      icon: BarChart,
-      color: '#ea580c',
-    },
-  },
-  {
-    id: 'spk-3',
-    name: 'Coach Fery Tjhia',
-    title: 'Gratyo Certified Business Coach',
-    imageUrl: '/speakers/speaker-3.jpg',
-    category: { name: 'Development', icon: Code, color: '#2563eb' },
-  },
-  {
-    id: 'spk-4',
-    name: 'Dedy Sidharta',
-    title: 'Founder & CEO D_Consulting',
-    imageUrl: '/speakers/speaker-4.jpg',
-    category: { name: 'Marketing', icon: Megaphone, color: '#db2777' },
-  },
-  {
-    id: 'spk-5',
-    name: 'dr. Tirta Mandira Hudji, M.B.A.',
-    title: 'Dokter Influencer',
-    imageUrl: '/speakers/speaker-5.jpg',
-    category: {
-      name: 'Business',
-      icon: Briefcase,
-      color: '#9333ea',
-    },
-  },
-  {
-    id: 'spk-6',
-    name: 'Frankie Wijaya',
-    title: 'Co-Founder & Senior Consultant',
-    imageUrl: '/speakers/speaker-6.jpg',
-    category: { name: 'Design', icon: Palette, color: '#16a34a' },
-  },
-  {
-    id: 'spk-7',
-    name: 'Imam Wijoyo',
-    title: 'Executive Chairman of Indonesia Winning Institute',
-    imageUrl: '/speakers/speaker-7.jpg',
-    category: {
-      name: 'Business',
-      icon: Briefcase,
-      color: '#9333ea',
-    },
-  },
-  {
-    id: 'spk-8',
-    name: 'Paulus Sulastri',
-    title: 'Co-Founder iCommunity Techpreneur',
-    imageUrl: '/speakers/speaker-8.jpg',
-    category: {
-      name: 'Data Science',
-      icon: BarChart,
-      color: '#ea580c',
-    },
-  },
-  {
-    id: 'spk-9',
-    name: 'William Sudhana',
-    title: 'Managing Director of vosFoyer',
-    imageUrl: '/speakers/speaker-9.jpg',
-    category: { name: 'Development', icon: Code, color: '#2563eb' },
-  },
-  {
-    id: 'spk-10',
-    name: 'Yudistira Ditya Pratama',
-    title: 'Digital Marketing Performance & Analytics Professional',
-    imageUrl: '/speakers/speaker-10.jpg',
-    category: { name: 'Marketing', icon: Megaphone, color: '#db2777' },
-  },
-];
-
-export const alumniTestimonials: AlumniTestimonial[] = [
-  {
-    id: 'alumni-1',
-    name: 'Dandi Rizky Eko Saputro',
-    batch: 'Software Engineering Jan 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#8b5cf6', // purple-500
-    before: {
-      role: 'Business English',
-      university: 'Universitas Surabaya',
-    },
-    after: {
-      role: 'Fullstack Engineer',
-      company: 'PT Adi Karya Media',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-2',
-    name: 'Putri Rahma Sari',
-    batch: 'Digital Marketing Jan 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#db2777', // pink-600
-    before: {
-      role: 'Accounting',
-      university: 'Universitas Jambi',
-    },
-    after: {
-      role: 'Social Media Specialist',
-      company: 'PT Pertamina Patra Niaga',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-3',
-    name: 'Yuda Satria Syaifi',
-    batch: 'Data Analytics May 22 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#f97316', // orange-500
-    before: {
-      role: 'Production Engineer',
-      university: 'PT Indocement Tunggal Prakarsa',
-    },
-    after: {
-      role: 'Quantitative and Automation Specialist',
-      company: 'CIMB Niaga Auto Finance',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-4',
-    name: 'Rachmah Gunawan',
-    batch: 'Software Engineering Jan 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#8b5cf6',
-    before: {
-      role: 'Environmental Engineering',
-      university: 'Brawijaya University',
-    },
-    after: {
-      role: 'Creative & General Developer',
-      company: 'MNC Media',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-5',
-    name: 'Ahmad Dhani',
-    batch: 'Digital Marketing Feb 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#db2777',
-    before: {
-      role: 'Economics',
-      university: 'Universitas Indonesia',
-    },
-    after: {
-      role: 'SEO Specialist',
-      company: 'Traveloka',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-6',
-    name: 'Siti Aminah',
-    batch: 'Data Analytics Jun 22 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#f97316',
-    before: {
-      role: 'Statistics',
-      university: 'Institut Teknologi Bandung',
-    },
-    after: {
-      role: 'Data Scientist',
-      company: 'Gojek',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-    {
-    id: 'alumni-7',
-    name: 'Bambang Pamungkas',
-    batch: 'Software Engineering Mar 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#8b5cf6',
-    before: {
-      role: 'Informatics Engineering',
-      university: 'Universitas Gadjah Mada',
-    },
-    after: {
-      role: 'Backend Engineer',
-      company: 'Tokopedia',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-8',
-    name: 'Dewi Lestari',
-    batch: 'Digital Marketing Apr 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#db2777',
-    before: {
-      role: 'Communication',
-      university: 'Universitas Padjadjaran',
-    },
-    after: {
-      role: 'Content Marketing Manager',
-      company: 'Shopee',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-9',
-    name: 'Eko Prasetyo',
-    batch: 'Data Analytics Jul 22 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#f97316',
-    before: {
-      role: 'Mathematics',
-      university: 'Universitas Airlangga',
-    },
-    after: {
-      role: 'Business Intelligence Analyst',
-      company: 'Bukalapak',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
-  },
-  {
-    id: 'alumni-10',
-    name: 'Fitriani',
-    batch: 'Software Engineering May 23 Batch',
-    avatarUrl: 'https://placehold.co/80x80.png',
-    bgColor: '#8b5cf6',
-    before: {
-      role: 'Computer Science',
-      university: 'Institut Pertanian Bogor',
-    },
-    after: {
-      role: 'Frontend Engineer',
-      company: 'Blibli',
-      companyLogoUrl: 'https://placehold.co/100x40.png',
-    },
   },
 ];

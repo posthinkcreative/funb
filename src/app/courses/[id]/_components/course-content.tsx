@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -11,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { CourseCard } from '@/components/course-card';
-import CourseRecommendations from '@/components/course-recommendations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import React, { useState, useRef, useEffect } from 'react';
 import { Course } from '@/types';
@@ -27,18 +25,36 @@ interface CourseContentProps {
 export function CourseContent({ course, relatedCourses }: CourseContentProps) {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [formattedPrice, setFormattedPrice] = useState('');
+  const [displayPrice, setDisplayPrice] = React.useState({ original: '', final: '' });
+  
+  const courseDateObject = course.courseDate && typeof (course.courseDate as any).toDate === 'function' 
+    ? (course.courseDate as any).toDate() 
+    : course.courseDate ? new Date(course.courseDate) : null;
+
 
   useEffect(() => {
-    // Client-side effect for formatting currency to avoid hydration errors.
+    const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(value);
+
     if (course) {
-        const formatted = new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(course.price);
-        setFormattedPrice(formatted);
+        const { price, discountType, discountValue } = course;
+        let finalPrice: number | null = null;
+        if (discountType && discountType !== 'none' && discountValue && discountValue > 0) {
+            if (discountType === 'percentage') {
+                finalPrice = price * (1 - discountValue / 100);
+            } else if (discountType === 'nominal') {
+                finalPrice = price - discountValue;
+            }
+        }
+        
+        setDisplayPrice({
+            original: formatCurrency(price),
+            final: finalPrice !== null ? formatCurrency(finalPrice) : ''
+        });
     }
   }, [course]);
 
@@ -96,7 +112,7 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
               </CardContent>
             </Card>
 
-            <h2 className="text-2xl font-headline font-bold mb-4">Course content</h2>
+            <h2 className="text-2xl font-headline font-bold mb-4">Webinar content</h2>
             <Accordion type="single" collapsible className="w-full bg-white rounded-lg border shadow-lg">
               {course.modules.map(module => (
                 <AccordionItem value={module.id} key={module.id}>
@@ -167,7 +183,7 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
             <Card className="overflow-hidden shadow-xl">
                <Dialog>
                 <div className="relative">
-                    {course.videoUrl ? (
+                    {course.videoUrl && course.videoUrl.trim() !== '' ? (
                         <video
                             ref={videoRef}
                             src={course.videoUrl}
@@ -182,10 +198,10 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
                     )}
                     
                     <div className='absolute top-0 left-0 w-full p-4 bg-gradient-to-b from-black/60 to-transparent'>
-                        <h3 className='text-white font-bold text-lg'>Course Preview</h3>
+                        <h3 className='text-white font-bold text-lg'>Webinar Preview</h3>
                     </div>
 
-                    {course.videoUrl && (
+                    {course.videoUrl && course.videoUrl.trim() !== '' && (
                         <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                              <Button size="icon" variant="ghost" className="text-white hover:bg-black/50 hover:text-white" onClick={toggleMute}>
                                 {isMuted ? <VolumeX className="w-5 h-5"/> : <Volume2 className="w-5 h-5"/>}
@@ -200,7 +216,7 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
                         </div>
                     )}
                 </div>
-                {course.videoUrl && (
+                {course.videoUrl && course.videoUrl.trim() !== '' && (
                 <DialogContent className="max-w-3xl p-0">
                     <DialogHeader>
                       <DialogTitle className="sr-only">{course.title} Video Preview</DialogTitle>
@@ -210,7 +226,12 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
                 )}
                </Dialog>
               <CardContent className="p-6">
-                <h2 className="text-4xl font-bold mb-4">{formattedPrice || '...'}</h2>
+                <div className="flex items-baseline gap-2 mb-4">
+                    <h2 className="text-4xl font-bold">{displayPrice.final || displayPrice.original || '...'}</h2>
+                    {displayPrice.final && (
+                        <p className="text-2xl font-bold text-muted-foreground line-through">{displayPrice.original}</p>
+                    )}
+                </div>
                 <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold" asChild>
                   <Link href={`/checkout/${course.id}`}>Register Now</Link>
                 </Button>
@@ -218,10 +239,10 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
                   Add to Cart
                 </Button>
                 <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-                  {course.courseDate && (
+                  {courseDateObject && (
                     <li className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-primary" />
-                      <span>{format(new Date(course.courseDate), "dd MMMM yyyy")}</span>
+                      <span>{format(courseDateObject, "dd MMMM yyyy")}</span>
                     </li>
                   )}
                   {course.courseTime && (
@@ -251,14 +272,7 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
         <Separator className="my-12" />
 
         <div>
-          <h2 className="text-3xl font-bold font-headline mb-8 text-center">AI Recommendations</h2>
-          <CourseRecommendations currentCourse={course} />
-        </div>
-
-        <Separator className="my-12" />
-
-        <div>
-          <h2 className="text-3xl font-bold font-headline mb-8 text-center">Related Courses</h2>
+          <h2 className="text-3xl font-bold font-headline mb-8 text-center">Related Webinars</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {relatedCourses.map(relatedCourse => (
               <CourseCard key={relatedCourse.id} course={relatedCourse} />

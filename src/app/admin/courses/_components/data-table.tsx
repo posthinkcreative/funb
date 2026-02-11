@@ -28,11 +28,13 @@ import { Skeleton } from "@/components/ui/skeleton"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -60,16 +62,40 @@ export function DataTable<TData, TValue>({
   }, []);
 
 
-  if (!isMounted) {
+  if (!isMounted || isLoading) {
+    const skeletonRows = Array.from({ length: 5 });
     return (
         <div className="space-y-4">
             <div className="flex items-center p-4">
                 <Skeleton className="h-10 w-full max-w-sm" />
             </div>
-            <div className="rounded-md border p-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full mt-2" />
-                <Skeleton className="h-12 w-full mt-2" />
+            <div className="rounded-md border">
+                 <Table>
+                    <TableHeader>
+                         {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(header.column.columnDef.header, header.getContext())}
+                                    </TableHead>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableHeader>
+                    <TableBody>
+                       {skeletonRows.map((_, index) => (
+                            <TableRow key={index}>
+                                {columns.map((column) => (
+                                    <TableCell key={(column as any).id || (column as any).accessorKey}>
+                                        <Skeleton className="h-6 w-full" />
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
         </div>
     )
@@ -79,7 +105,7 @@ export function DataTable<TData, TValue>({
     <div className="bg-background">
         <div className="flex items-center p-4">
         <Input
-          placeholder="Filter courses..."
+          placeholder="Filter webinars..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("title")?.setFilterValue(event.target.value)

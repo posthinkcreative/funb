@@ -1,32 +1,98 @@
+'use client';
 
+import React, { useState, useEffect } from 'react';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, getDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 import { CourseCard } from "@/components/course-card";
-import { courses } from "@/lib/mock-data";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import type { Course } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// In a real app, this would be fetched based on the logged-in user.
-// Here we just take a slice of the mock data to simulate purchased courses.
-const purchasedCourses = courses.slice(0, 2);
+const CourseCardSkeleton = () => (
+  <Card>
+    <CardHeader className="p-0">
+      <Skeleton className="h-48 w-full" />
+    </CardHeader>
+    <CardContent className="p-4">
+      <Skeleton className="h-4 w-20 mb-2" />
+      <Skeleton className="h-6 w-3/4 mb-2" />
+      <Skeleton className="h-4 w-1/2" />
+    </CardContent>
+    <CardFooter className="p-4 pt-0">
+      <Skeleton className="h-5 w-full" />
+    </CardFooter>
+  </Card>
+);
 
 export default function MyCoursesPage() {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const [purchasedCourses, setPurchasedCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+
+  useEffect(() => {
+    if (isUserLoading) return;
+    if (!user) {
+      setIsLoadingCourses(false);
+      return;
+    };
+
+    const fetchPurchasedCourses = async () => {
+      try {
+        setIsLoadingCourses(true);
+        const userRef = doc(firestore, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          const enrolledCourseIds = userData.enrolledCourseIds || [];
+          
+          if (enrolledCourseIds.length > 0) {
+            const coursesQuery = query(collection(firestore, "courses"), where(documentId(), "in", enrolledCourseIds));
+            const coursesSnapshot = await getDocs(coursesQuery);
+            const coursesData = coursesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Course[];
+            
+            setPurchasedCourses(coursesData);
+          } else {
+             setPurchasedCourses([]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching purchased webinars:", error);
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+
+    fetchPurchasedCourses();
+  }, [user, isUserLoading, firestore]);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>My Courses</CardTitle>
+        <CardTitle>My Webinars</CardTitle>
         <CardDescription>
-          All the courses you have enrolled in.
+          All the webinars you have enrolled in.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {purchasedCourses.length > 0 ? (
+        {isUserLoading || isLoadingCourses ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <CourseCardSkeleton />
+              <CourseCardSkeleton />
+            </div>
+        ) : purchasedCourses.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {purchasedCourses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground mt-8">
-            You haven't enrolled in any courses yet.
-          </p>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              You haven't enrolled in any webinars yet.
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>

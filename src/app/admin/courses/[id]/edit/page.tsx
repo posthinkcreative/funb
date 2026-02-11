@@ -1,33 +1,63 @@
+'use client';
 
-import { notFound } from 'next/navigation';
-import { courses } from '@/lib/mock-data';
+import { notFound, useParams } from 'next/navigation';
 import type { Course } from '@/types';
 import React from 'react';
 import { EditCourseLoader } from './_components/edit-course-loader';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
-function getCourse(id: string): Course | undefined {
-    return courses.find(c => c.id === id);
-}
+// This is the Page, a Client Component now.
+// It fetches the course data using a hook.
+export default function EditCoursePage() {
+  const params = useParams();
+  const id = typeof params.id === 'string' ? params.id : '';
+  const firestore = useFirestore();
 
-// This is the Page, a Server Component.
-// It fetches the course data.
-export default function EditCoursePage({ params }: { params: { id: string } }) {
-  // Note: In Next.js 13+ with App Router, params are passed directly, not as a promise.
-  // Using React.use(params) is for suspense, but here we can just destructure.
-  const { id } = params;
-  const course = getCourse(id);
+  const courseDocRef = useMemoFirebase(() => {
+    if (!firestore || !id) return null;
+    return doc(firestore, 'courses', id);
+  }, [firestore, id]);
 
-  if (!course) {
-    notFound();
+  const { data: course, isLoading } = useDoc<Course>(courseDocRef);
+
+  if (isLoading) {
+    return (
+        <div className="p-4 md:p-8">
+            <div className="mb-6">
+                <Skeleton className="h-8 w-64 mb-2" />
+                <Skeleton className="h-5 w-96" />
+            </div>
+            {/* You can use the loading component from EditCourseLoader directly for consistency */}
+            <div className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        <Skeleton className="h-64 w-full rounded-lg" />
+                        <Skeleton className="h-80 w-full rounded-lg" />
+                    </div>
+                    <div className="lg:col-span-1 space-y-8">
+                        <Skeleton className="h-64 w-full rounded-lg" />
+                        <Skeleton className="h-40 w-full rounded-lg" />
+                        <Skeleton className="h-56 w-full rounded-lg" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
   }
 
-  // It then renders the loader component (which is a Client Component)
+  if (!course) {
+    return notFound();
+  }
+
+  // It then renders the loader component (which is also a Client Component)
   // and passes the server-fetched data to it.
   return (
     <div className="p-4 md:p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold font-headline">Edit Course</h2>
-        <p className="text-muted-foreground">Modify the details for the course "{course.title}"</p>
+        <h2 className="text-2xl font-bold font-headline">Edit Webinar</h2>
+        <p className="text-muted-foreground">Modify the details for the webinar "{course.title}"</p>
       </div>
       <EditCourseLoader course={course} />
     </div>

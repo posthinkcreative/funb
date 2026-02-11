@@ -58,12 +58,32 @@ const Carousel = React.forwardRef<
     },
     ref
   ) => {
+    // Check if the carousel has any items. This is to prevent the autoplay plugin
+    // from crashing when there are no slides to display.
+    const hasContent = React.useMemo(() => {
+      if (!children) return false;
+      let hasSlides = false;
+      // We need to loop through the children to find the CarouselContent
+      // and check if it has any children (the CarouselItems).
+      React.Children.forEach(children, (child) => {
+        if (React.isValidElement(child) && (child.type as any).displayName === "CarouselContent") {
+          const contentChildren = child.props.children;
+          // An empty map in the parent component will result in 0 children.
+          if (React.Children.count(contentChildren) > 0) {
+            hasSlides = true;
+          }
+        }
+      });
+      return hasSlides;
+    }, [children]);
+    
     const [carouselRef, api] = useEmblaCarousel(
       {
         ...opts,
         axis: orientation === "horizontal" ? "x" : "y",
       },
-      plugins
+      // Only enable plugins if there's content, otherwise autoplay can crash.
+      hasContent ? plugins : []
     )
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
@@ -206,9 +226,9 @@ const CarouselPrevious = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute  h-8 w-8 rounded-full",
+        "absolute h-8 w-8 rounded-full z-10",
         orientation === "horizontal"
-          ? "-left-12 top-1/2 -translate-y-1/2"
+          ? "left-4 top-1/2 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}
@@ -235,9 +255,9 @@ const CarouselNext = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute h-8 w-8 rounded-full",
+        "absolute h-8 w-8 rounded-full z-10",
         orientation === "horizontal"
-          ? "-right-12 top-1/2 -translate-y-1/2"
+          ? "right-4 top-1/2 -translate-y-1/2"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}

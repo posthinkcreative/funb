@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -92,10 +91,21 @@ export default {
             height: '0',
           },
         },
+        'infinite-scroll': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-100%)' },
+        },
+        'scroll-speakers': {
+          'to': {
+            transform: 'translateX(calc(-100% - 2rem * 4))',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'infinite-scroll': 'infinite-scroll 40s linear infinite',
+        'scroll-speakers': 'scroll-speakers 60s linear infinite',
       },
     },
   },

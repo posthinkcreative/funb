@@ -1,0 +1,34 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // Use custom claims for role checks. This is the most reliable method for Storage Rules.
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    // --- Rules for All Application Uploads ---
+    // All uploads go into the 'hero-images' folder. This rule covers all subdirectories.
+    // It's publicly readable but write access is restricted to admins.
+    match /hero-images/{allPaths=**} {
+      // Allow anyone to read images (for displaying on the public website).
+      allow get: if true; 
+      
+      // Only authenticated admins can upload, update, or delete files.
+      allow write: if isAdmin();
+    }
+
+    // --- Default Deny Rule ---
+    // A security best practice to deny all access to any other paths.
+    match /{allOtherPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

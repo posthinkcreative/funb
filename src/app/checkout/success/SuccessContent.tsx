@@ -37,7 +37,7 @@ export default function SuccessContent() {
             </div>
           <CardTitle className="text-3xl font-headline font-bold">Payment Successful!</CardTitle>
           <CardDescription>
-            Thank you for your purchase. You are now enrolled in the course.
+            Thank you for your purchase. You are now enrolled in the webinar.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -56,10 +56,10 @@ export default function SuccessContent() {
               </div>
             </div>
           ) : (
-             <p className="text-muted-foreground">Could not load course details.</p>
+             <p className="text-muted-foreground">Could not load webinar details.</p>
           )}
           <Button asChild size="lg" className="mt-8 w-full md:w-auto">
-            <Link href="/courses">Explore More Courses</Link>
+            <Link href="/courses">Explore More Webinars</Link>
           </Button>
         </CardContent>
       </Card>

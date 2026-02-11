@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,41 +14,39 @@ export function BootcampVideo({ src }: BootcampVideoProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMuted, setIsMuted] = React.useState(true);
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  // Autoplay video when it becomes visible
+  
+  // Autoplay video when it becomes visible using a more robust method
   React.useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        const videoElement = videoRef.current;
-        if (entry.isIntersecting) {
-          // When the video becomes visible, attempt to play it.
-          // The `play()` method returns a promise. We catch any errors
-          // which typically happen if autoplay is blocked by the browser.
-          videoElement?.play().catch(error => {
-            if (error.name !== 'AbortError') {
-              console.error("Autoplay was prevented: ", error);
-            }
-          });
-        } else {
-          // When the video is no longer visible, pause it.
-          videoElement?.pause();
+      async ([entry]) => {
+        try {
+          if (entry.isIntersecting) {
+            // When the video becomes visible, attempt to play it.
+            await videoElement.play();
+          } else {
+            // When the video is no longer visible, pause it.
+            videoElement.pause();
+          }
+        } catch (error) {
+          // The play() request can be interrupted by a call to pause() when scrolling quickly.
+          // This is expected behavior, so we can safely ignore the 'AbortError'.
+          if ((error as DOMException).name !== 'AbortError') {
+            console.error("Video playback error:", error);
+          }
         }
       },
       { threshold: 0.5 } // Trigger when 50% of the video is visible
     );
 
-    const currentContainerRef = containerRef.current;
-    if (currentContainerRef) {
-      observer.observe(currentContainerRef);
-    }
+    observer.observe(videoElement);
 
     return () => {
-      if (currentContainerRef) {
-        observer.unobserve(currentContainerRef);
-      }
+      observer.unobserve(videoElement);
     };
-  }, []);
+  }, [src]); // Re-run effect if the video source changes
 
   // Function to handle stopping the video when the dialog closes
   React.useEffect(() => {
@@ -72,7 +69,6 @@ export function BootcampVideo({ src }: BootcampVideoProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <div 
-        ref={containerRef}
         className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-xl group"
       >
         <video

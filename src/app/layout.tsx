@@ -4,6 +4,7 @@ import './globals.css';
 import { Poppins, PT_Sans } from 'next/font/google';
 import RootClientLayout from '@/components/root-client-layout';
 import { cn } from '@/lib/utils';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 
 export const metadata: Metadata = {
@@ -32,7 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("font-body antialiased", fontHeadline.variable, fontBody.variable)}>
-        <RootClientLayout>{children}</RootClientLayout>
+        <FirebaseClientProvider>
+          <RootClientLayout>{children}</RootClientLayout>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>
