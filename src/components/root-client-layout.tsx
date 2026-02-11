@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import SiteHeader from '@/components/site-header';
 import SiteFooter from '@/components/site-footer';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
@@ -112,18 +112,32 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
     );
 }
 
+function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isAdminPage = pathname.startsWith('/admin');
+    
+    return (
+        <AuthHandler>
+            {!isAdminPage && <SiteHeader />}
+            <main className="flex-grow">{children}</main>
+            {!isAdminPage && <SiteFooter />}
+        </AuthHandler>
+    );
+}
 
 export default function RootClientLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isAdminPage = pathname.startsWith('/admin');
-
   return (
     <div className="flex flex-col min-h-screen">
-      <AuthHandler>
-        {!isAdminPage && <SiteHeader />}
-        <main className="flex-grow">{children}</main>
-        {!isAdminPage && <SiteFooter />}
-      </AuthHandler>
+       <Suspense fallback={
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+          <p suppressHydrationWarning={true} className="mt-4 text-sm text-muted-foreground">
+            Loading...
+          </p>
+        </div>
+      }>
+        <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+      </Suspense>
     </div>
   );
 }
