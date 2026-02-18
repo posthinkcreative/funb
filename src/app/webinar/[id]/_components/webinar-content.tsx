@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Star, Users, BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock } from 'lucide-react';
+import { Star, Users, BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,10 +19,11 @@ import { format } from 'date-fns';
 interface WebinarContentProps {
     course: Course;
     relatedCourses: Course[];
+    enrollmentCount: number;
 }
 
 
-export function WebinarContent({ course, relatedCourses }: WebinarContentProps) {
+export function WebinarContent({ course, relatedCourses, enrollmentCount }: WebinarContentProps) {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [displayPrice, setDisplayPrice] = React.useState({ original: '', final: '' });
@@ -89,7 +90,7 @@ export function WebinarContent({ course, relatedCourses }: WebinarContentProps) 
             </div>
             <div className="flex items-center gap-1">
               <Users className="w-5 h-5" />
-              <span>1,234 students</span>
+              <span>{enrollmentCount} students</span>
             </div>
           </div>
         </div>
@@ -146,7 +147,6 @@ export function WebinarContent({ course, relatedCourses }: WebinarContentProps) 
                 <div>
                   <h3 className="text-xl font-bold font-headline text-primary">{course.instructor.name}</h3>
                   <p className="text-muted-foreground">{course.instructor.title}</p>
-                  <Link href={`/instructors/${course.instructor.id}`} className="text-sm text-primary hover:underline mt-1 inline-block">View Profile</Link>
                 </div>
               </div>
               <p className="mt-4 text-sm text-muted-foreground">{course.instructor.bio}</p>
@@ -233,7 +233,7 @@ export function WebinarContent({ course, relatedCourses }: WebinarContentProps) 
                     )}
                 </div>
                 <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold" asChild>
-                  <Link href={`/checkout/${course.id}`}>Register Now</Link>
+                  <Link href={`/checkout/${course.slug}`}>Register Now</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="w-full mt-2">
                   Add to Cart
@@ -259,10 +259,14 @@ export function WebinarContent({ course, relatedCourses }: WebinarContentProps) 
                   )}
                   {course.schedule && (
                     <li className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-primary" />
+                      <Activity className="w-5 h-5 text-primary" />
                       <span>{course.schedule} schedule</span>
                     </li>
                   )}
+                  <li className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-primary" />
+                      <span>{enrollmentCount} students enrolled</span>
+                  </li>
                 </ul>
               </CardContent>
             </Card>

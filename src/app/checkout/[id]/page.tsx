@@ -8,21 +8,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, collection, addDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
   const params = useParams();
-  const id = typeof params.id === 'string' ? params.id : '';
+  const slug = typeof params.slug === 'string' ? params.slug : '';
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
   const webinarDocRef = useMemoFirebase(() => {
-    if (!firestore || !id) return null;
-    return doc(firestore, 'webinars', id);
-  }, [firestore, id]);
+    if (!firestore || !slug) return null;
+    return doc(firestore, 'webinars', slug);
+  }, [firestore, slug]);
 
   const { data: course, isLoading: isCourseLoading } = useDoc<Course>(webinarDocRef);
 
@@ -56,7 +56,7 @@ export default function CheckoutPage() {
 
   const handlePayment = async () => {
     if (!user) {
-      router.push(`/login?redirect=/checkout/${course!.id}`);
+      router.push(`/login?redirect=/checkout/${course!.slug}`);
       return;
     }
 
@@ -65,11 +65,37 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
+        let finalPrice: number = course.price;
+        if (course.discountType && course.discountType !== 'none' && course.discountValue && course.discountValue > 0) {
+            if (course.discountType === 'percentage') {
+                finalPrice = course.price * (1 - course.discountValue / 100);
+            } else {
+                finalPrice = course.price - course.discountValue;
+            }
+        }
+
+      const webinarRef = doc(firestore, 'webinars', course.id);
       const userRef = doc(firestore, 'users', user.uid);
+      const transactionsRef = collection(firestore, 'transactions');
+      
+      // Atomically increment the enrollment count
+      await updateDoc(webinarRef, {
+        enrollmentCount: increment(1)
+      });
       
       // Add the course ID to the user's enrolled courses
       await updateDoc(userRef, {
         enrolledCourseIds: arrayUnion(course.id)
+      });
+
+      // Create a transaction document for auditing
+      await addDoc(transactionsRef, {
+        userId: user.uid,
+        courseId: course.id,
+        transactionDate: serverTimestamp(),
+        amount: finalPrice,
+        paymentMethod: 'iPaymu',
+        ipaymuReference: `demo-${Date.now()}`
       });
       
       router.push(`/checkout/success?courseId=${course.id}`);

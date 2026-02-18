@@ -10,13 +10,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function WebinarPage() {
   const params = useParams();
-  const id = typeof params.id === 'string' ? params.id : '';
+  const slug = typeof params.slug === 'string' ? params.slug : '';
   const firestore = useFirestore();
 
   const courseDocRef = useMemoFirebase(() => {
-    if (!firestore || !id) return null;
-    return doc(firestore, 'webinars', id);
-  }, [firestore, id]);
+    if (!firestore || !slug) return null;
+    return doc(firestore, 'webinars', slug);
+  }, [firestore, slug]);
 
   const { data: course, isLoading: isLoadingCourse } = useDoc<Course>(courseDocRef);
 
@@ -32,12 +32,21 @@ export default function WebinarPage() {
   
   const { data: relatedCoursesData, isLoading: isLoadingRelated } = useCollection<Course>(relatedCoursesQuery);
 
+  const enrollmentsQuery = useMemoFirebase(() => {
+    if (!firestore || !course) return null;
+    return query(collection(firestore, 'transactions'), where('courseId', '==', course.id));
+  }, [firestore, course]);
+
+  const { data: enrollments, isLoading: isLoadingEnrollments } = useCollection(enrollmentsQuery);
+
+  const enrollmentCount = enrollments ? enrollments.length : 0;
+
   const relatedCourses = React.useMemo(() => {
     if (!relatedCoursesData || !course) return [];
     return relatedCoursesData.filter(c => c.id !== course.id).slice(0, 3);
   }, [relatedCoursesData, course]);
   
-  const isLoading = isLoadingCourse || (course && isLoadingRelated);
+  const isLoading = isLoadingCourse || (course && (isLoadingRelated || isLoadingEnrollments));
 
   if (isLoading) {
     return ( // A skeleton loader for the detail page
@@ -62,5 +71,5 @@ export default function WebinarPage() {
     notFound();
   }
 
-  return <WebinarContent course={course} relatedCourses={relatedCourses} />;
+  return <WebinarContent course={course} relatedCourses={relatedCourses} enrollmentCount={enrollmentCount} />;
 }

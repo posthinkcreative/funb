@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import Image from "next/image"
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -23,28 +23,27 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud } from "lucide-react"
+import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud, X } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DatePicker } from "@/components/ui/datepicker"
 import { useToast } from "@/hooks/use-toast"
 import { courseFormSchema } from "@/lib/config"
 import { cn } from "@/lib/utils"
-import { useFirestore, useStorage, useUser } from "@/firebase"
+import { useFirestore, useStorage, useUser, useCollection, useMemoFirebase } from "@/firebase"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
-import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore"
-import type { Instructor, Review } from "@/types"
+import { collection, doc, serverTimestamp, setDoc } from "firebase/firestore"
+import type { Review, Speaker, Instructor } from "@/types"
 
-// Helper function to process form data into Firestore-compatible format
-const processCourseData = (data: z.infer<typeof courseFormSchema>, imageUrl: string, videoUrl: string) => {
-    // Placeholder data for fields not in the form
-    const instructor: Instructor = {
-        id: 'inst-1',
-        name: 'Bunga Citra',
-        title: 'Lead UX Designer',
-        bio: 'A brief bio.',
-        avatarUrl: 'https://placehold.co/100x100.png',
-    };
+const generateSlug = (title: string) => {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+};
 
+const processCourseData = (data: z.infer<typeof courseFormSchema>, instructorData: Instructor, imageUrl: string, videoUrl: string) => {
     const reviews: Review[] = [];
 
     const processedModules = data.modules.map(m => ({
@@ -61,6 +60,7 @@ const processCourseData = (data: z.infer<typeof courseFormSchema>, imageUrl: str
 
     return {
       title: data.title,
+      slug: data.slug,
       description: data.description,
       longDescription: data.description,
       price: Number(data.price),
@@ -76,9 +76,11 @@ const processCourseData = (data: z.infer<typeof courseFormSchema>, imageUrl: str
       status: data.status,
       features: data.features.map(f => f.value),
       modules: processedModules,
-      instructor: instructor,
+      instructorId: instructorData.id,
+      instructor: instructorData,
       rating: 0,
       reviewCount: 0,
+      enrollmentCount: 0,
       reviews: reviews,
       createdAt: serverTimestamp()
     };
@@ -106,16 +108,27 @@ export function CreateCourseForm() {
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  const practitionersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'practitioners');
+  }, [firestore]);
+
+  const { data: practitioners, isLoading: isLoadingPractitioners } = useCollection<Speaker>(practitionersQuery);
+
 
   const form = useForm<z.infer<typeof courseFormSchema>>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
       title: "",
+      slug: "",
       description: "",
       price: 0,
       discountType: 'none',
       discountValue: 0,
       category: "Development",
+      instructorId: "",
+      newInstructorName: "",
+      newInstructorTitle: "",
       imageUrl: "",
       videoUrl: "",
       courseDate: undefined,
@@ -134,6 +147,14 @@ export function CreateCourseForm() {
     },
   })
 
+  const watchedTitle = form.watch("title");
+  useEffect(() => {
+      if (watchedTitle) {
+          const slug = generateSlug(watchedTitle);
+          form.setValue("slug", slug, { shouldValidate: true });
+      }
+  }, [watchedTitle, form]);
+
   const { fields: featureFields, append: appendFeature, remove: removeFeature, move: moveFeature } = useFieldArray({
     control: form.control,
     name: "features",
@@ -147,8 +168,8 @@ export function CreateCourseForm() {
   const handleSave = (status: "Published" | "Draft") => async (values: z.infer<typeof courseFormSchema>) => {
     setIsSubmitting(true);
     try {
-        if (!user || !firestore || !storage) {
-            toast({ title: "Authentication Error", description: "You must be logged in to perform this action.", variant: "destructive" });
+        if (!user || !firestore || !storage || !practitioners) {
+            toast({ title: "Initialization Error", description: "Services or data not ready. Please wait.", variant: "destructive" });
             setIsSubmitting(false);
             return;
         }
@@ -159,9 +180,37 @@ export function CreateCourseForm() {
             return;
         }
         
-        const courseCollRef = collection(firestore, 'webinars');
-        const newCourseDocRef = doc(courseCollRef); 
-        const courseId = newCourseDocRef.id;
+        let instructorData: Instructor;
+        if (values.newInstructorName) {
+            instructorData = {
+                id: `manual-${generateSlug(values.newInstructorName)}`,
+                name: values.newInstructorName,
+                title: values.newInstructorTitle || 'Instructor',
+                bio: '',
+                avatarUrl: 'https://placehold.co/100x100.png',
+            };
+        } else if (values.instructorId) {
+            const selectedInstructor = practitioners.find(p => p.id === values.instructorId);
+            if (!selectedInstructor) {
+                toast({ title: "Instructor Not Found", description: "The selected instructor is invalid.", variant: "destructive" });
+                setIsSubmitting(false);
+                return;
+            }
+            instructorData = {
+                id: selectedInstructor.id,
+                name: selectedInstructor.name,
+                title: selectedInstructor.title,
+                bio: '',
+                avatarUrl: selectedInstructor.imageUrl,
+            };
+        } else {
+             toast({ title: "Instructor Required", description: "Please select an instructor or add a new one.", variant: "destructive" });
+             setIsSubmitting(false);
+             return;
+        }
+
+        const courseId = values.slug;
+        const newCourseDocRef = doc(firestore, 'webinars', courseId);
 
         let imageUrl = '';
         let videoUrl = '';
@@ -187,7 +236,9 @@ export function CreateCourseForm() {
             setIsUploadingVideo(false);
         }
 
-        const dataToSubmit = processCourseData({ ...values, status }, imageUrl, videoUrl);
+        const dataToSubmit = processCourseData({ ...values, status }, instructorData, imageUrl, videoUrl);
+        delete (dataToSubmit as any).newInstructorName;
+        delete (dataToSubmit as any).newInstructorTitle;
         
         await setDoc(newCourseDocRef, dataToSubmit);
 
@@ -244,7 +295,7 @@ export function CreateCourseForm() {
       }
   };
   
-  const totalLoading = isSubmitting || isUploadingImage || isUploadingVideo;
+  const totalLoading = isSubmitting || isUploadingImage || isUploadingVideo || isLoadingPractitioners;
 
   return (
     <Form {...form}>
@@ -265,6 +316,18 @@ export function CreateCourseForm() {
                     <FormItem>
                       <FormLabel>Title</FormLabel>
                       <FormControl><Input placeholder="e.g. The Complete Web Development Bootcamp" {...field} disabled={totalLoading} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slug</FormLabel>
+                      <FormControl><Input placeholder="e.g. complete-web-dev-bootcamp" {...field} disabled={totalLoading} /></FormControl>
+                      <FormDescription>This will be the unique URL for your webinar.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -446,6 +509,76 @@ export function CreateCourseForm() {
                             />
                         )}
                     </div>
+                     <div className="space-y-2">
+                        <FormLabel>Select Instructor</FormLabel>
+                        <div className="flex items-center gap-2">
+                            <FormField
+                            control={form.control}
+                            name="instructorId"
+                            render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                <Select onValueChange={field.onChange} value={field.value || ""} disabled={totalLoading}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={isLoadingPractitioners ? "Loading..." : "Select an existing instructor"} />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {practitioners?.map(p => (
+                                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                            {form.watch('instructorId') && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => form.setValue('instructorId', '', { shouldValidate: true })}
+                                disabled={totalLoading}
+                            >
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Clear selection</span>
+                            </Button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="relative my-2">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">Or</span>
+                        </div>
+                    </div>
+                    <FormField
+                        control={form.control}
+                        name="newInstructorName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Add New Instructor Name</FormLabel>
+                                <FormControl><Input placeholder="e.g. Bunga Citra" {...field} disabled={totalLoading} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="newInstructorTitle"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>New Instructor Title</FormLabel>
+                                <FormControl><Input placeholder="e.g. Lead UX Designer" {...field} disabled={totalLoading} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
                     <FormField
                         control={form.control}
                         name="category"

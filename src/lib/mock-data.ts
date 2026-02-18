@@ -60,6 +60,7 @@ const videoUrl = 'https://firebasestorage.googleapis.com/v0/b/aplikasi-web-32907
 export const courses: Course[] = [
   {
     id: '1',
+    slug: 'digital-marketing-agency',
     title: 'Digital Marketing Agency',
     category: 'Development',
     description: 'Learn to build modern web applications with the MERN stack.',
@@ -71,6 +72,7 @@ export const courses: Course[] = [
     videoUrl: videoUrl,
     rating: 4.8,
     reviewCount: 1250,
+    enrollmentCount: 2800,
     instructor: instructors[1],
     reviews: reviews,
     modules: modules,
@@ -83,6 +85,7 @@ export const courses: Course[] = [
   },
   {
     id: '2',
+    slug: 'creative-business-solutions-agency',
     title: 'Creative Business Solutions Agency',
     category: 'Design',
     description: 'Master the art of user interface and user experience design.',
@@ -94,6 +97,7 @@ export const courses: Course[] = [
     videoUrl: videoUrl,
     rating: 4.9,
     reviewCount: 980,
+    enrollmentCount: 1500,
     instructor: instructors[0],
     reviews: reviews,
     modules: modules,
@@ -106,6 +110,7 @@ export const courses: Course[] = [
   },
   {
     id: '3',
+    slug: 'great-ideas-to-grow-your-business',
     title: 'Great Ideas to Grow Your Business',
     category: 'Marketing',
     description: 'A beginner-friendly guide to digital marketing channels.',
@@ -115,6 +120,7 @@ export const courses: Course[] = [
     videoUrl: videoUrl,
     rating: 4.7,
     reviewCount: 750,
+    enrollmentCount: 1200,
     instructor: instructors[0],
     reviews: reviews,
     modules: modules,
@@ -125,6 +131,7 @@ export const courses: Course[] = [
   },
   {
     id: '4',
+    slug: 'professional-solution-for-your-business',
     title: 'Professional Solution For Your Business',
     category: 'Business',
     description: 'Learn the essentials of starting and managing a successful business.',
@@ -134,6 +141,7 @@ export const courses: Course[] = [
     videoUrl: videoUrl,
     rating: 4.8,
     reviewCount: 1100,
+    enrollmentCount: 1800,
     instructor: instructors[1],
     reviews: reviews,
     modules: modules,
@@ -144,6 +152,7 @@ export const courses: Course[] = [
   },
   {
     id: '5',
+    slug: 'we-are-digital-marketing-agency',
     title: 'We Are Digital Marketing Agency',
     category: 'Development',
     description: 'Take your CSS skills to the next level with advanced techniques.',
@@ -153,6 +162,7 @@ export const courses: Course[] = [
     videoUrl: videoUrl,
     rating: 4.9,
     reviewCount: 850,
+    enrollmentCount: 1400,
     instructor: instructors[0],
     reviews: reviews,
     modules: modules,
@@ -163,6 +173,7 @@ export const courses: Course[] = [
   },
   {
     id: '6',
+    slug: 'digital-marketing-bootcamp',
     title: 'Digital Marketing Bootcamp',
     category: 'Development',
     description: 'Unlock the power of data with Python, Pandas, and Matplotlib.',
@@ -172,6 +183,7 @@ export const courses: Course[] = [
     videoUrl: videoUrl,
     rating: 4.8,
     reviewCount: 2300,
+    enrollmentCount: 3500,
     instructor: instructors[1],
     reviews: reviews,
     modules: modules,

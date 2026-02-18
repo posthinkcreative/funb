@@ -29,6 +29,7 @@ export type Module = {
 
 export type Course = {
   id: string;
+  slug: string;
   title: string;
   category: string;
   description: string;
@@ -40,6 +41,7 @@ export type Course = {
   videoUrl?: string;
   rating: number;
   reviewCount: number;
+  instructorId?: string;
   instructor: Instructor;
   reviews: Review[];
   modules: Module[];
@@ -48,6 +50,7 @@ export type Course = {
   courseTime?: string;
   level?: string;
   schedule?: string;
+  enrollmentCount?: number;
   status: 'Published' | 'Draft' | 'Archived';
   createdAt?: any;
 };

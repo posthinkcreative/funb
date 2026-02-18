@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import Image from "next/image"
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -23,17 +23,26 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Course } from "@/types"
-import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud } from "lucide-react"
+import { Course, Speaker, Instructor } from "@/types"
+import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud, X } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DatePicker } from "@/components/ui/datepicker"
 import { useToast } from "@/hooks/use-toast"
 import { courseFormSchema } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useFirestore, useStorage, useUser } from "@/firebase"
+import { useFirestore, useStorage, useUser, useCollection, useMemoFirebase } from "@/firebase"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
-import { doc, updateDoc } from "firebase/firestore"
+import { doc, updateDoc, collection } from "firebase/firestore"
+
+const generateSlug = (title: string) => {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+};
 
 const parseDuration = (duration: string) => {
     if (!duration) return { hours: 0, minutes: 0 };
@@ -71,6 +80,13 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  
+  const practitionersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'practitioners');
+  }, [firestore]);
+
+  const { data: practitioners, isLoading: isLoadingPractitioners } = useCollection<Speaker>(practitionersQuery);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -80,11 +96,15 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
       title: course.title,
+      slug: course.slug,
       description: course.description,
       price: course.price,
       discountType: course.discountType || 'none',
       discountValue: course.discountValue || 0,
       category: course.category,
+      instructorId: course.instructorId || "",
+      newInstructorName: "",
+      newInstructorTitle: "",
       imageUrl: course.imageUrl,
       videoUrl: course.videoUrl || "",
       courseDate: course.courseDate ? (typeof (course.courseDate as any).toDate === 'function' ? (course.courseDate as any).toDate() : new Date(course.courseDate)) : undefined,
@@ -109,12 +129,41 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
   const handleSave = (status: "Published" | "Draft") => async (values: z.infer<typeof courseFormSchema>) => {
     setIsSubmitting(true);
     try {
-        if (!user || !firestore || !storage) {
+        if (!user || !firestore || !storage || !practitioners) {
             toast({ title: "Authentication Error", description: "You must be logged in to perform this action.", variant: "destructive" });
             setIsSubmitting(false);
             return;
         }
 
+        let instructorData: Instructor;
+        if (values.newInstructorName) {
+            instructorData = {
+                id: `manual-${generateSlug(values.newInstructorName)}`,
+                name: values.newInstructorName,
+                title: values.newInstructorTitle || 'Instructor',
+                bio: '',
+                avatarUrl: 'https://placehold.co/100x100.png',
+            };
+        } else if (values.instructorId) {
+            const selectedInstructor = practitioners.find(p => p.id === values.instructorId);
+            if (!selectedInstructor) {
+                toast({ title: "Instructor Not Found", description: "The selected instructor is invalid.", variant: "destructive" });
+                setIsSubmitting(false);
+                return;
+            }
+            instructorData = {
+                id: selectedInstructor.id,
+                name: selectedInstructor.name,
+                title: selectedInstructor.title,
+                bio: '',
+                avatarUrl: selectedInstructor.imageUrl,
+            };
+        } else {
+             toast({ title: "Instructor Required", description: "Please select an instructor or add a new one.", variant: "destructive" });
+             setIsSubmitting(false);
+             return;
+        }
+        
         let imageUrl = values.imageUrl;
         let videoUrl = values.videoUrl;
 
@@ -152,18 +201,24 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
             }),
         }));
         
-        const dataToUpdate = {
+        const dataToUpdate: any = {
             ...values,
+            slug: course.slug, // Slug is immutable
             status,
             imageUrl,
             videoUrl,
             price: Number(values.price),
             discountType: values.discountType,
-            discountValue: values.discountType !== 'none' ? values.discountValue : 0,
+            discountValue: values.discountType !== 'none' ? Number(values.discountValue) : 0,
             features: values.features.map(f => f.value),
             modules: processedModules,
             longDescription: values.description, 
+            instructorId: instructorData.id,
+            instructor: instructorData,
         };
+
+        delete dataToUpdate.newInstructorName;
+        delete dataToUpdate.newInstructorTitle;
 
         const courseRef = doc(firestore, 'webinars', course.id);
         await updateDoc(courseRef, dataToUpdate);
@@ -223,7 +278,7 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
 
   const watchedImageUrl = form.watch("imageUrl");
   const watchedVideoUrl = form.watch("videoUrl");
-  const totalLoading = isSubmitting || isUploadingImage || isUploadingVideo;
+  const totalLoading = isSubmitting || isUploadingImage || isUploadingVideo || isLoadingPractitioners;
 
   if (!isMounted) {
     return (
@@ -261,6 +316,18 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   name="title"
                   render={({ field }) => (
                     <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g. The Complete Web Development Bootcamp" {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slug</FormLabel>
+                      <FormControl><Input {...field} disabled /></FormControl>
+                      <FormDescription>The slug cannot be changed after creation.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
                 <FormField
@@ -404,6 +471,75 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             />
                         )}
                     </div>
+                    <div className="space-y-2">
+                        <FormLabel>Select Instructor</FormLabel>
+                        <div className="flex items-center gap-2">
+                            <FormField
+                            control={form.control}
+                            name="instructorId"
+                            render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                <Select onValueChange={field.onChange} value={field.value || ""} disabled={totalLoading}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={isLoadingPractitioners ? "Loading..." : "Select an existing instructor"} />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {practitioners?.map(p => (
+                                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                            {form.watch('instructorId') && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => form.setValue('instructorId', '', { shouldValidate: true })}
+                                disabled={totalLoading}
+                            >
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Clear selection</span>
+                            </Button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="relative my-2">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">Or</span>
+                        </div>
+                    </div>
+                    <FormField
+                        control={form.control}
+                        name="newInstructorName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Add New Instructor Name</FormLabel>
+                                <FormControl><Input placeholder="e.g. Bunga Citra" {...field} disabled={totalLoading} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="newInstructorTitle"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>New Instructor Title</FormLabel>
+                                <FormControl><Input placeholder="e.g. Lead UX Designer" {...field} disabled={totalLoading} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Development">Development</SelectItem><SelectItem value="Design">Design</SelectItem><SelectItem value="Business">Business</SelectItem><SelectItem value="Marketing">Marketing</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="level" render={({ field }) => (<FormItem><FormLabel>Level</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Beginner">Beginner</SelectItem><SelectItem value="Intermediate">Intermediate</SelectItem><SelectItem value="Advanced">Advanced</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name="schedule" render={({ field }) => (<FormItem><FormLabel>Schedule</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a schedule type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Flexible">Flexible</SelectItem><SelectItem value="Fixed">Fixed</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />

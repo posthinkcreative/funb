@@ -7,21 +7,21 @@ import { DataTable } from "./_components/data-table"
 import { columns } from "./_components/columns"
 import Link from "next/link"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query } from "firebase/firestore";
 import type { Course } from "@/types";
 
 export default function AdminWebinarsPage() {
   const firestore = useFirestore();
 
-  const coursesQuery = useMemoFirebase(() => {
+  const webinarsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, "webinars"), orderBy("title", "asc"));
+    return query(collection(firestore, "webinars"));
   }, [firestore]);
 
-  const { data: courses, isLoading } = useCollection<Course>(coursesQuery);
+  const { data: webinars, isLoading } = useCollection<Course>(webinarsQuery);
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="container mx-auto p-4 md:p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold font-headline">Manage Webinars</h2>
@@ -34,7 +34,7 @@ export default function AdminWebinarsPage() {
           </Link>
         </Button>
       </div>
-      <DataTable columns={columns} data={courses || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={webinars || []} isLoading={isLoading} />
     </div>
   )
 }

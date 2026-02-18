@@ -13,13 +13,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 // It fetches the course data using a hook.
 export default function EditWebinarPage() {
   const params = useParams();
-  const id = typeof params.id === 'string' ? params.id : '';
+  const slug = typeof params.slug === 'string' ? params.slug : '';
   const firestore = useFirestore();
 
   const courseDocRef = useMemoFirebase(() => {
-    if (!firestore || !id) return null;
-    return doc(firestore, 'webinars', id);
-  }, [firestore, id]);
+    if (!firestore || !slug) return null;
+    return doc(firestore, 'webinars', slug);
+  }, [firestore, slug]);
 
   const { data: course, isLoading } = useDoc<Course>(courseDocRef);
 
@@ -30,7 +30,7 @@ export default function EditWebinarPage() {
                 <Skeleton className="h-8 w-64 mb-2" />
                 <Skeleton className="h-5 w-96" />
             </div>
-            {/* You can use the loading component from EditWebinarLoader directly for consistency */}
+            {/* You can use the loading component from EditWebinarLoader for consistency */}
             <div className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">

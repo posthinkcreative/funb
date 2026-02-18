@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import Link from 'next/link';
@@ -46,7 +48,7 @@ export function WebinarCard({ course }: WebinarCardProps) {
         : course.courseDate ? new Date(course.courseDate) : null;
 
   return (
-    <Link href={`/webinar/${course.id}`}>
+    <Link href={`/webinar/${course.slug}`}>
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="p-0">
           <div className="relative">
@@ -93,11 +95,11 @@ export function WebinarCard({ course }: WebinarCardProps) {
             <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
                 <span>{course.rating}</span>
-                <span className="text-xs">({course.reviewCount})</span>
+                <span className="text-xs">({course.reviewCount} reviews)</span>
             </div>
-            <div className="flex items-center gap-1">
+             <div className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
-                <span>1,234</span>
+                <span>{course.enrollmentCount || 0} students</span>
             </div>
         </CardFooter>
       </Card>

@@ -166,7 +166,7 @@ function ActionsCell({ course }: { course: Course }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-            <Link href={`/admin/webinars/${course.id}/edit`}>Edit Webinar</Link>
+            <Link href={`/admin/webinars/${course.slug}/edit`}>Edit Webinar</Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleStatusToggle}>
             {course.status === 'Published' ? 'Archive Webinar' : 'Publish Webinar'}

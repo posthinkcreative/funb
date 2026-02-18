@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
   const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="container mx-auto p-4 md:p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold font-headline">Manage Users</h2>
