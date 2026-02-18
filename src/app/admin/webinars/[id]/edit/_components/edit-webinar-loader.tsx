@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Course } from '@/types';
 
-const EditCourseForm = dynamic(() => import('./edit-form').then(mod => mod.EditCourseForm), {
+const EditWebinarForm = dynamic(() => import('./edit-form').then(mod => mod.EditWebinarForm), {
   ssr: false,
   loading: () => (
     <div className="space-y-8">
@@ -39,12 +39,12 @@ const CardSkeleton = ({ height = '150px' }: { height?: string }) => (
     </div>
 );
 
-interface EditCourseLoaderProps {
+interface EditWebinarLoaderProps {
   course: Course;
 }
 
-export function EditCourseLoader({ course }: EditCourseLoaderProps) {
+export function EditWebinarLoader({ course }: EditWebinarLoaderProps) {
   // This component is now a client component, and it handles the dynamic import.
   // It receives the server-fetched course data as props.
-  return <EditCourseForm course={course} />;
+  return <EditWebinarForm course={course} />;
 }

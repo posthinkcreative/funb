@@ -9,20 +9,20 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { CourseCard } from '@/components/course-card';
+import { WebinarCard } from '@/components/webinar-card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import React, { useState, useRef, useEffect } from 'react';
 import { Course } from '@/types';
 import { format } from 'date-fns';
 
 
-interface CourseContentProps {
+interface WebinarContentProps {
     course: Course;
     relatedCourses: Course[];
 }
 
 
-export function CourseContent({ course, relatedCourses }: CourseContentProps) {
+export function WebinarContent({ course, relatedCourses }: WebinarContentProps) {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [displayPrice, setDisplayPrice] = React.useState({ original: '', final: '' });
@@ -275,7 +275,7 @@ export function CourseContent({ course, relatedCourses }: CourseContentProps) {
           <h2 className="text-3xl font-bold font-headline mb-8 text-center">Related Webinars</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {relatedCourses.map(relatedCourse => (
-              <CourseCard key={relatedCourse.id} course={relatedCourse} />
+              <WebinarCard key={relatedCourse.id} course={relatedCourse} />
             ))}
           </div>
         </div>

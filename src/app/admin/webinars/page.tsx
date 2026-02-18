@@ -9,7 +9,7 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import type { Course } from "@/types";
 
-export default function AdminCoursesPage() {
+export default function AdminWebinarsPage() {
   const firestore = useFirestore();
 
   const coursesQuery = useMemoFirebase(() => {
@@ -27,7 +27,7 @@ export default function AdminCoursesPage() {
           <p className="text-muted-foreground">Here you can add, edit, and delete webinars.</p>
         </div>
         <Button asChild>
-          <Link href="/admin/courses/new">
+          <Link href="/admin/webinars/new">
             <PlusCircle className="mr-2 h-4 w-4" />
             Add New Webinar
           </Link>

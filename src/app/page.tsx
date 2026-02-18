@@ -1,6 +1,6 @@
 'use client';
 
-import { CourseCard } from "@/components/course-card";
+import { WebinarCard } from "@/components/webinar-card";
 import { SponsorLogos } from "@/components/company-logos";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { BootcampVideoSection } from "@/components/bootcamp-video-section";
@@ -13,7 +13,7 @@ import { collection, query, where, orderBy, limit } from "firebase/firestore";
 import type { Course } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const CourseCardSkeleton = () => (
+const WebinarCardSkeleton = () => (
     <div className="flex flex-col h-full overflow-hidden transition-all duration-300 rounded-lg border">
         <Skeleton className="w-full h-48" />
         <div className="p-4 flex-grow">
@@ -55,13 +55,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {isLoading ? (
                 <>
-                    <CourseCardSkeleton />
-                    <CourseCardSkeleton />
-                    <CourseCardSkeleton />
+                    <WebinarCardSkeleton />
+                    <WebinarCardSkeleton />
+                    <WebinarCardSkeleton />
                 </>
             ) : (
                 featuredCourses && featuredCourses.map(course => (
-                    <CourseCard key={course.id} course={course} />
+                    <WebinarCard key={course.id} course={course} />
                 ))
             )}
           </div>

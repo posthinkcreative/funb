@@ -46,11 +46,11 @@ const parseDuration = (duration: string) => {
     return { hours, minutes };
 }
 
-interface EditCourseFormProps {
+interface EditWebinarFormProps {
   course: Course;
 }
 
-export function EditCourseForm({ course }: EditCourseFormProps) {
+export function EditWebinarForm({ course }: EditWebinarFormProps) {
   const [draggedFeatureIndex, setDraggedFeatureIndex] = React.useState<number | null>(null);
   const [draggedModuleIndex, setDraggedModuleIndex] = React.useState<number | null>(null);
   const router = useRouter();
@@ -169,7 +169,7 @@ export function EditCourseForm({ course }: EditCourseFormProps) {
         await updateDoc(courseRef, dataToUpdate);
 
         toast({ title: `Webinar ${status === 'Published' ? 'Published' : 'Saved as Draft'}`, description: `The webinar "${values.title}" has been saved.` });
-        router.push("/admin/courses");
+        router.push("/admin/webinars");
         router.refresh();
 
     } catch (error: any) {

@@ -75,7 +75,7 @@ export default function LayoutLoader({
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Webinar">
-                      <SidebarClosingLink href="/admin/courses"><BookCopy /><span>Webinar</span></SidebarClosingLink>
+                      <SidebarClosingLink href="/admin/webinars"><BookCopy /><span>Webinar</span></SidebarClosingLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>

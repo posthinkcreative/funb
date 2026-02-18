@@ -93,7 +93,7 @@ function ActionsCell({ course }: { course: Course }) {
             } catch (e: any) {
                 // If object does not exist, we can ignore the error
                 if (e.code !== 'storage/object-not-found') {
-                    console.error("Could not delete course image:", e);
+                    console.error("Could not delete webinar image:", e);
                 }
             }
         }
@@ -104,7 +104,7 @@ function ActionsCell({ course }: { course: Course }) {
             } catch (e: any) {
                 // If object does not exist, we can ignore the error
                 if (e.code !== 'storage/object-not-found') {
-                    console.error("Could not delete course video:", e);
+                    console.error("Could not delete webinar video:", e);
                 }
             }
         }
@@ -165,7 +165,7 @@ function ActionsCell({ course }: { course: Course }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-            <Link href={`/admin/courses/${course.id}/edit`}>Edit Webinar</Link>
+            <Link href={`/admin/webinars/${course.id}/edit`}>Edit Webinar</Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleStatusToggle}>
             {course.status === 'Published' ? 'Archive Webinar' : 'Publish Webinar'}

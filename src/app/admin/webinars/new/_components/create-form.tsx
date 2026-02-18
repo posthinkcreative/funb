@@ -192,7 +192,7 @@ export function CreateCourseForm() {
         await setDoc(newCourseDocRef, dataToSubmit);
 
         toast({ title: `Webinar Created`, description: `The webinar "${values.title}" has been created.`, });
-        router.push("/admin/courses");
+        router.push("/admin/webinars");
         router.refresh();
 
     } catch (error: any) {

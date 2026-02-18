@@ -99,7 +99,7 @@ function UserNav() {
                     <Link href="/account/profile">My Account</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/account/my-courses">My Webinars</Link>
+                    <Link href="/account/my-webinars">My Webinars</Link>
                 </DropdownMenuItem>
             </>
           )}
@@ -117,7 +117,7 @@ function HeaderContent() {
   const { user, isUserLoading } = useUser();
 
   const navLinks = [
-    { href: "/courses", label: "Webinar" },
+    { href: "/webinar", label: "Webinar" },
     { href: "#", label: "Bootcamps" },
   ];
 

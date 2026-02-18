@@ -1,14 +1,14 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { CourseContent } from './_components/course-content';
+import { WebinarContent } from './_components/webinar-content';
 import type { Course } from '@/types';
 import React from 'react';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function CoursePage() {
+export default function WebinarPage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : '';
   const firestore = useFirestore();
@@ -62,5 +62,5 @@ export default function CoursePage() {
     notFound();
   }
 
-  return <CourseContent course={course} relatedCourses={relatedCourses} />;
+  return <WebinarContent course={course} relatedCourses={relatedCourses} />;
 }

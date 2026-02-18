@@ -59,7 +59,7 @@ export default function SuccessContent() {
              <p className="text-muted-foreground">Could not load webinar details.</p>
           )}
           <Button asChild size="lg" className="mt-8 w-full md:w-auto">
-            <Link href="/courses">Explore More Webinars</Link>
+            <Link href="/webinar">Explore More Webinars</Link>
           </Button>
         </CardContent>
       </Card>

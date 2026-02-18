@@ -9,11 +9,11 @@ import { Star, Users, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import React from 'react';
 
-interface CourseCardProps {
+interface WebinarCardProps {
   course: Course;
 }
 
-export function CourseCard({ course }: CourseCardProps) {
+export function WebinarCard({ course }: WebinarCardProps) {
     const [displayPrice, setDisplayPrice] = React.useState({ original: '', final: '' });
 
     React.useEffect(() => {
@@ -46,7 +46,7 @@ export function CourseCard({ course }: CourseCardProps) {
         : course.courseDate ? new Date(course.courseDate) : null;
 
   return (
-    <Link href={`/courses/${course.id}`}>
+    <Link href={`/webinar/${course.id}`}>
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="p-0">
           <div className="relative">

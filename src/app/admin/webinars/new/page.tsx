@@ -1,7 +1,7 @@
 import React from 'react';
 import { CreateCourseForm } from './_components/create-form';
 
-export default function NewCoursePage() {
+export default function NewWebinarPage() {
   return (
     <div className="p-4 md:p-8">
       <div className="mb-6">

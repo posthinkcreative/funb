@@ -18,7 +18,7 @@ const navItems = [
     icon: User,
   },
   {
-    href: "/account/my-courses",
+    href: "/account/my-webinars",
     label: "My Webinars",
     icon: BookMarked,
   },

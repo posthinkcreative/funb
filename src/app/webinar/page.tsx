@@ -1,12 +1,12 @@
 'use client';
 
-import { CourseCard } from "@/components/course-card";
+import { WebinarCard } from "@/components/webinar-card";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy } from "firebase/firestore";
 import type { Course } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const CourseCardSkeleton = () => (
+const WebinarCardSkeleton = () => (
     <div className="flex flex-col h-full overflow-hidden transition-all duration-300 rounded-lg border">
         <Skeleton className="w-full h-48" />
         <div className="p-4 flex-grow">
@@ -21,7 +21,7 @@ const CourseCardSkeleton = () => (
     </div>
 );
 
-export default function CoursesPage() {
+export default function WebinarsPage() {
     const firestore = useFirestore();
 
     const coursesQuery = useMemoFirebase(() => {
@@ -48,13 +48,13 @@ export default function CoursesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {isLoading ? (
                         <>
-                            <CourseCardSkeleton />
-                            <CourseCardSkeleton />
-                            <CourseCardSkeleton />
+                            <WebinarCardSkeleton />
+                            <WebinarCardSkeleton />
+                            <WebinarCardSkeleton />
                         </>
                     ) : courses && courses.length > 0 ? (
                         courses.map(course => (
-                            <CourseCard key={course.id} course={course} />
+                            <WebinarCard key={course.id} course={course} />
                         ))
                     ) : (
                          <div className="col-span-full text-center py-12">

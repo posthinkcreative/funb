@@ -3,14 +3,14 @@
 import { notFound, useParams } from 'next/navigation';
 import type { Course } from '@/types';
 import React from 'react';
-import { EditCourseLoader } from './_components/edit-course-loader';
+import { EditWebinarLoader } from './_components/edit-webinar-loader';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // This is the Page, a Client Component now.
 // It fetches the course data using a hook.
-export default function EditCoursePage() {
+export default function EditWebinarPage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : '';
   const firestore = useFirestore();
@@ -29,7 +29,7 @@ export default function EditCoursePage() {
                 <Skeleton className="h-8 w-64 mb-2" />
                 <Skeleton className="h-5 w-96" />
             </div>
-            {/* You can use the loading component from EditCourseLoader directly for consistency */}
+            {/* You can use the loading component from EditWebinarLoader directly for consistency */}
             <div className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
@@ -59,7 +59,7 @@ export default function EditCoursePage() {
         <h2 className="text-2xl font-bold font-headline">Edit Webinar</h2>
         <p className="text-muted-foreground">Modify the details for the webinar "{course.title}"</p>
       </div>
-      <EditCourseLoader course={course} />
+      <EditWebinarLoader course={course} />
     </div>
   );
 }

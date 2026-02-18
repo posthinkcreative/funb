@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
-import { CourseCard } from "@/components/course-card";
+import { WebinarCard } from "@/components/webinar-card";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import type { Course } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const CourseCardSkeleton = () => (
+const WebinarCardSkeleton = () => (
   <Card>
     <CardHeader className="p-0">
       <Skeleton className="h-48 w-full" />
@@ -24,7 +24,7 @@ const CourseCardSkeleton = () => (
   </Card>
 );
 
-export default function MyCoursesPage() {
+export default function MyWebinarsPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [purchasedCourses, setPurchasedCourses] = useState<Course[]>([]);
@@ -78,13 +78,13 @@ export default function MyCoursesPage() {
       <CardContent>
         {isUserLoading || isLoadingCourses ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <CourseCardSkeleton />
-              <CourseCardSkeleton />
+              <WebinarCardSkeleton />
+              <WebinarCardSkeleton />
             </div>
         ) : purchasedCourses.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {purchasedCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+              <WebinarCard key={course.id} course={course} />
             ))}
           </div>
         ) : (

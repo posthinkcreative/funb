@@ -19,13 +19,13 @@ function getServiceAccount() {
     try {
         const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
         if (!serviceAccountString || serviceAccountString.trim() === '') {
-            throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set or is empty. Please check your environment variable configuration.");
+            throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set or is empty. Please check your .env.local file.");
         }
         // It's expected to be a stringified JSON, so we parse it.
         return JSON.parse(serviceAccountString);
     } catch (e: any) {
         // The original error is logged to the server console for detailed debugging.
-        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Make sure it's a valid JSON string in your environment variables. Error:", e.message);
+        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Make sure it's a valid JSON string in your .env.local file. Error:", e.message);
         
         // A more user-friendly error is thrown to be displayed in the UI.
         const helpfulError = `Could not initialize Firebase Admin SDK. The 'FIREBASE_SERVICE_ACCOUNT_KEY' in your environment is not a valid JSON string. Please ensure you have copied the entire JSON object from your Firebase project's service account settings. It should start with '{' and end with '}'.`;
@@ -70,5 +70,4 @@ export function initializeAdminApp(): AdminServices {
   adminServices = { app, auth, firestore };
   return adminServices;
 }
-
 
