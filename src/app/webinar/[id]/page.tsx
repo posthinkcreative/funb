@@ -15,7 +15,7 @@ export default function WebinarPage() {
 
   const courseDocRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
-    return doc(firestore, 'courses', id);
+    return doc(firestore, 'webinars', id);
   }, [firestore, id]);
 
   const { data: course, isLoading: isLoadingCourse } = useDoc<Course>(courseDocRef);
@@ -23,7 +23,7 @@ export default function WebinarPage() {
   const relatedCoursesQuery = useMemoFirebase(() => {
     if (!firestore || !course) return null;
     return query(
-      collection(firestore, 'courses'),
+      collection(firestore, 'webinars'),
       where('category', '==', course.category),
       where('status', '==', 'Published'),
       limit(4) // Fetch 4, one might be the current course

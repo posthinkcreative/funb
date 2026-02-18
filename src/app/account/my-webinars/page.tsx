@@ -48,7 +48,7 @@ export default function MyWebinarsPage() {
           const enrolledCourseIds = userData.enrolledCourseIds || [];
           
           if (enrolledCourseIds.length > 0) {
-            const coursesQuery = query(collection(firestore, "courses"), where(documentId(), "in", enrolledCourseIds));
+            const coursesQuery = query(collection(firestore, "webinars"), where(documentId(), "in", enrolledCourseIds));
             const coursesSnapshot = await getDocs(coursesQuery);
             const coursesData = coursesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Course[];
             

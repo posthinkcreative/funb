@@ -33,7 +33,7 @@ export default function Home() {
 
   const coursesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, "courses"), where("status", "==", "Published"), orderBy("createdAt", "desc"), limit(6));
+    return query(collection(firestore, "webinars"), where("status", "==", "Published"), orderBy("createdAt", "desc"), limit(6));
   }, [firestore]);
 
   const { data: featuredCourses, isLoading } = useCollection<Course>(coursesQuery);

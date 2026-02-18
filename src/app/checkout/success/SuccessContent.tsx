@@ -6,24 +6,45 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, ShoppingBag } from 'lucide-react';
-import { courses } from '@/lib/mock-data';
 import React from 'react';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { Course } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SuccessContent() {
   const searchParams = useSearchParams();
   const courseId = searchParams.get('courseId');
-  const course = courses.find(c => c.id === courseId);
+  const firestore = useFirestore();
+
+  const webinarDocRef = useMemoFirebase(() => {
+    if (!firestore || !courseId) return null;
+    return doc(firestore, 'webinars', courseId as string);
+  }, [firestore, courseId]);
+
+  const { data: course, isLoading } = useDoc<Course>(webinarDocRef);
+
   const [formattedPrice, setFormattedPrice] = React.useState('');
 
   React.useEffect(() => {
-    // Client-side effect for formatting currency to avoid hydration errors.
     if (course) {
+        const { price, discountType, discountValue } = course;
+        let finalPrice: number = price;
+
+        if (discountType && discountType !== 'none' && discountValue && discountValue > 0) {
+            if (discountType === 'percentage') {
+                finalPrice = price * (1 - discountValue / 100);
+            } else if (discountType === 'nominal') {
+                finalPrice = price - discountValue;
+            }
+        }
+        
         const formatted = new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(course.price);
+        }).format(finalPrice);
         setFormattedPrice(formatted);
     }
   }, [course]);
@@ -41,7 +62,13 @@ export default function SuccessContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {course ? (
+          {isLoading ? (
+            <div className="p-4 border rounded-lg bg-muted/50 text-left space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-5 w-1/4 ml-auto" />
+            </div>
+          ) : course ? (
             <div className="p-4 border rounded-lg bg-muted/50 text-left">
               <h3 className="font-semibold flex items-center gap-2 mb-2">
                 <ShoppingBag className="w-5 h-5"/>

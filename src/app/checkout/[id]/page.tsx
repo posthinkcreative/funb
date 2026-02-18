@@ -1,28 +1,30 @@
 'use client';
 
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { courses } from '@/lib/mock-data';
 import type { Course } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-
-function getCourse(id: string): Course | undefined {
-    return courses.find(c => c.id === id);
-}
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : '';
-  const course = getCourse(id);
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const webinarDocRef = useMemoFirebase(() => {
+    if (!firestore || !id) return null;
+    return doc(firestore, 'webinars', id);
+  }, [firestore, id]);
+
+  const { data: course, isLoading: isCourseLoading } = useDoc<Course>(webinarDocRef);
 
   const [displayPrice, setDisplayPrice] = React.useState('');
   const [isProcessing, setIsProcessing] = React.useState(false);
@@ -84,8 +86,34 @@ export default function CheckoutPage() {
     }
   }
 
-  if (isUserLoading) {
-    return <div className="container text-center py-12">Loading user...</div>
+  const isLoading = isUserLoading || isCourseLoading;
+
+  if (isLoading) {
+    return (
+        <div className="container mx-auto max-w-4xl px-4 py-12">
+            <h1 className="text-4xl font-headline font-bold mb-8 text-center">Checkout</h1>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-48 mb-2" />
+                    <Skeleton className="h-5 w-full max-w-lg" />
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col md:flex-row gap-6">
+                        <Skeleton className="rounded-lg w-full md:w-1/4 h-32" />
+                        <div className="flex-grow space-y-2">
+                           <Skeleton className="h-6 w-3/4" />
+                           <Skeleton className="h-4 w-1/2" />
+                           <Skeleton className="h-4 w-1/3" />
+                        </div>
+                        <Skeleton className="h-8 w-32" />
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Skeleton className="h-12 w-full" />
+                </CardFooter>
+            </Card>
+        </div>
+    )
   }
 
   if (!course) {
