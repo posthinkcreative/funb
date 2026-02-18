@@ -159,13 +159,13 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
             videoUrl,
             price: Number(values.price),
             discountType: values.discountType,
-            discountValue: values.discountType !== 'none' ? values.discountValue : undefined,
+            discountValue: values.discountType !== 'none' ? values.discountValue : 0,
             features: values.features.map(f => f.value),
             modules: processedModules,
             longDescription: values.description, 
         };
 
-        const courseRef = doc(firestore, 'courses', course.id);
+        const courseRef = doc(firestore, 'webinars', course.id);
         await updateDoc(courseRef, dataToUpdate);
 
         toast({ title: `Webinar ${status === 'Published' ? 'Published' : 'Saved as Draft'}`, description: `The webinar "${values.title}" has been saved.` });

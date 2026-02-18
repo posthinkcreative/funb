@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -14,7 +15,7 @@ export default function AdminWebinarsPage() {
 
   const coursesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, "courses"), orderBy("title", "asc"));
+    return query(collection(firestore, "webinars"), orderBy("title", "asc"));
   }, [firestore]);
 
   const { data: courses, isLoading } = useCollection<Course>(coursesQuery);

@@ -65,7 +65,7 @@ const processCourseData = (data: z.infer<typeof courseFormSchema>, imageUrl: str
       longDescription: data.description,
       price: Number(data.price),
       discountType: data.discountType,
-      discountValue: data.discountType !== 'none' ? data.discountValue : undefined,
+      discountValue: data.discountType !== 'none' ? data.discountValue : 0,
       category: data.category,
       imageUrl: imageUrl,
       videoUrl: videoUrl,
@@ -159,7 +159,7 @@ export function CreateCourseForm() {
             return;
         }
         
-        const courseCollRef = collection(firestore, 'courses');
+        const courseCollRef = collection(firestore, 'webinars');
         const newCourseDocRef = doc(courseCollRef); 
         const courseId = newCourseDocRef.id;
 

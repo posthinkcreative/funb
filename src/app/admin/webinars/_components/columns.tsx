@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
@@ -110,7 +111,7 @@ function ActionsCell({ course }: { course: Course }) {
         }
 
         // Delete the document from Firestore
-        await deleteDoc(doc(firestore, "courses", course.id));
+        await deleteDoc(doc(firestore, "webinars", course.id));
         
         toast({
           title: "Webinar Deleted",
@@ -138,7 +139,7 @@ function ActionsCell({ course }: { course: Course }) {
     
     try {
         await user.getIdToken(true);
-        const courseRef = doc(firestore, "courses", course.id);
+        const courseRef = doc(firestore, "webinars", course.id);
         await updateDoc(courseRef, { status: newStatus });
         toast({
             title: `Webinar status updated`,

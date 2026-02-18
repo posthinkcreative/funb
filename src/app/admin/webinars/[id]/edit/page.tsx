@@ -1,3 +1,4 @@
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -17,7 +18,7 @@ export default function EditWebinarPage() {
 
   const courseDocRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
-    return doc(firestore, 'courses', id);
+    return doc(firestore, 'webinars', id);
   }, [firestore, id]);
 
   const { data: course, isLoading } = useDoc<Course>(courseDocRef);
