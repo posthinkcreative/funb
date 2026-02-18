@@ -40,3 +40,40 @@ export async function updateUserRole(uid: string, newRole: 'admin' | 'customer')
   }
 }
 
+export async function deleteUser(uid: string) {
+  if (!uid) {
+    return { success: false, error: 'User ID is required.' };
+  }
+
+  try {
+    const { auth, firestore } = initializeAdminApp();
+
+    // Step 1: Delete user from Firebase Authentication
+    // This will prevent the user from being able to log in.
+    await auth.deleteUser(uid);
+
+    // Step 2: Delete user's document from Firestore
+    await firestore.collection('users').doc(uid).delete();
+
+    // Revalidate the users page to show the updated list
+    revalidatePath('/admin/users');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error deleting user:", error);
+
+    // Handle case where user might already be deleted from Auth but not Firestore
+    if (error.code === 'auth/user-not-found') {
+        try {
+            const { firestore } = initializeAdminApp();
+            await firestore.collection('users').doc(uid).delete();
+            revalidatePath('/admin/users');
+            return { success: true, message: 'User not found in Auth, but Firestore document was cleaned up.' };
+        } catch (fsError: any) {
+             return { success: false, error: fsError.message || 'An unexpected error occurred during Firestore cleanup.' };
+        }
+    }
+
+    return { success: false, error: error.message || 'An unexpected error occurred.' };
+  }
+}
