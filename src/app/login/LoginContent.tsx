@@ -1,12 +1,11 @@
 'use client'
 
 import Link from "next/link"
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useAuth, useFirestore } from "@/firebase";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Eye, EyeOff } from "lucide-react";
-
 
 import { Button } from "@/components/ui/button"
 import {
@@ -25,8 +24,8 @@ export default function LoginContent() {
   const auth = useAuth();
   const firestore = useFirestore();
   
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('password');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -36,13 +35,17 @@ export default function LoginContent() {
     
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // The global AuthHandler in root-client-layout.tsx will now handle the redirection.
+      toast({
+        title: "Success",
+        description: "Welcome back!",
+      });
     } catch (error: any) {
       toast({
         title: "Login Failed",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -50,34 +53,48 @@ export default function LoginContent() {
   const handleGoogleSignIn = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    
     const provider = new GoogleAuthProvider();
+    // OPTIMASI: Memaksa user memilih akun agar lebih jelas
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
     
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      
+      if (!firestore) throw new Error("Database not connected");
+
       const userRef = doc(firestore, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
-      // If the user is new (e.g., first sign-in with Google), create their document.
+      // Jika user pertama kali login, simpan ke database
       if (!userSnap.exists()) {
           await setDoc(userRef, {
               uid: user.uid,
               email: user.email,
               name: user.displayName,
               photoURL: user.photoURL,
-              role: 'customer', // Default role
+              role: 'customer',
+              createdAt: new Date().toISOString() // OPTIMASI: Tambah data tgl daftar
           });
       }
-      // The global AuthHandler will detect the new user state and redirect.
+      
+      toast({
+        title: "Login Success",
+        description: `Halo, ${user.displayName}!`,
+      });
+
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
-            console.error("Google Sign-In Error:", error);
             toast({
                 title: "Google Sign-In Failed",
                 description: error.message,
                 variant: "destructive",
             });
         }
+    } finally {
         setIsSubmitting(false);
     }
   }
@@ -98,7 +115,7 @@ export default function LoginContent() {
               <Input
                 id="email"
                 type="email"
-                placeholder="demo@example.com"
+                placeholder="name@example.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -109,7 +126,7 @@ export default function LoginContent() {
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
                 <Link
-                  href="#"
+                  href="/forgot-password"
                   className="ml-auto inline-block text-sm underline"
                 >
                   Forgot your password?
@@ -129,7 +146,6 @@ export default function LoginContent() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>

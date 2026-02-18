@@ -34,9 +34,8 @@ export async function updateUserRole(uid: string, newRole: 'admin' | 'customer')
     console.error("Error updating user role and claims:", error);
     // Provide a more specific error message if setting the claim fails
     if (error.code === 'auth/internal-error' || error.message.includes('permission')) {
-        return { success: false, error: `Failed to set custom claim. Please verify your FIREBASE_SERVICE_ACCOUNT_KEY in .env.local and check its IAM permissions in Google Cloud. Details: ${error.message}` };
+        return { success: false, error: `Permission Denied. The service account used by the app is missing required IAM permissions in Google Cloud. Please grant it the 'Service Account Token Creator' and 'Service Usage Consumer' roles in the IAM & Admin console.` };
     }
     return { success: false, error: error.message || 'An unexpected error occurred.' };
   }
 }
-
