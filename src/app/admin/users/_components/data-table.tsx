@@ -97,7 +97,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="bg-background">
+    <div className="w-full bg-background">
         <div className="flex items-center p-4">
         <Input
           placeholder="Filter by name or email..."

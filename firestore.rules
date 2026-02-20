@@ -8,45 +8,51 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-    
     function isAdmin() {
       // Use custom claims for role checks. This is faster and more secure.
       return isSignedIn() && request.auth.token.role == 'admin';
     }
 
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
     // --- Publicly Readable Data ---
 
-    // COURSES: Publicly readable for the course catalog.
-    // Anyone can view the list of courses and individual course details.
-    // Only admins can create, update, or delete courses.
+    // TEMPORARY RULE: Allow reads on the old 'courses' collection to prevent crashes.
     match /courses/{courseId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // WEBINARS: Publicly readable for the webinar catalog.
+    // Anyone can view the list of webinars and individual webinar details.
+    // Only admins can create, update, or delete webinars.
+    match /webinars/{webinarId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /instructors/{instructorId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /categories/{categoryId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /heroItems/{itemId} {
-      allow get, list: if true;
+      allow read: if true;
       // Write access should be restricted to administrators.
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /sponsor_logos/{logoId} {
-      allow get, list: if true;
+      allow read: if true;
       // Write access should be restricted to administrators.
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /website_settings/{settingId} {
@@ -55,13 +61,13 @@ service cloud.firestore {
     }
 
     match /practitioners/{practitionerId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /alumniTestimonials/{testimonialId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // --- User-Specific Data ---

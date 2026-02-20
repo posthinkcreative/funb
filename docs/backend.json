@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Course": {
@@ -411,17 +412,17 @@
   "firestore": {
     "structure": [
       {
-        "path": "/courses/{courseId}",
+        "path": "/webinars/{webinarId}",
         "definition": {
           "entityName": "Course",
           "schema": {
             "$ref": "#/backend/entities/Course"
           },
-          "description": "Stores course information. Includes the instructorId and categoryId.",
+          "description": "Stores webinar information. Includes the instructorId and categoryId.",
           "params": [
             {
-              "name": "courseId",
-              "description": "Unique identifier for the course."
+              "name": "webinarId",
+              "description": "Unique identifier for the webinar."
             }
           ]
         }
@@ -571,6 +572,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support EduBoost's course catalog, transactions, and user management features, while prioritizing security, scalability, and debuggability. The design emphasizes authorization independence through denormalization. User data is stored under `/users/{userId}` which gives ownership to each user over his data, and it simplifies security rules. Courses, Categories and Instructors are stored at the root level because they don't belong to a specific user. Transactions are stored under `/transactions/{transactionId}` and includes denormalized `userId` and `courseId` to enable efficient querying and simplified security rules. The structure aims to support the required QAPs by segregating user data and using explicit membership maps where needed (though not explicitly present in these entities).\n\n**Authorization Independence:**\nThe design avoids hierarchical authorization dependencies by storing all necessary authorization information directly within the documents. For example, the `transactions` collection includes `userId` and `courseId`, thus authorization rules don't need to `get()` data from `users` or `courses` collections.\n\n**QAPs Support:**\nThe structure uses structural segregation to ensure secure `list` operations. User specific data is stored under the `/users/{userId}` collection, ensuring that listing user data is restricted to the user themselves."
+    "reasoning": "The Firestore structure is designed to support EduBoost's webinar catalog, transactions, and user management features, while prioritizing security, scalability, and debuggability. The design emphasizes authorization independence through denormalization. User data is stored under `/users/{userId}` which gives ownership to each user over his data, and it simplifies security rules. Webinars, Categories and Instructors are stored at the root level because they don't belong to a specific user. Transactions are stored under `/transactions/{transactionId}` and includes denormalized `userId` and `courseId` (should be webinarId) to enable efficient querying and simplified security rules. The structure aims to support the required QAPs by segregating user data and using explicit membership maps where needed.\n\n**Authorization Independence:**\nThe design avoids hierarchical authorization dependencies by storing all necessary authorization information directly within the documents. For example, the `transactions` collection includes `userId` and `courseId`, thus authorization rules don't need to `get()` data from `users` or `webinars` collections.\n\n**QAPs Support:**\nThe structure uses structural segregation to ensure secure `list` operations. User specific data is stored under the `/users/{userId}` collection, ensuring that listing user data is restricted to the user themselves."
   }
 }

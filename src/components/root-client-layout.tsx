@@ -16,6 +16,7 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const redirectParam = searchParams.get('redirect'); // Extract the param
     const { user, isUserLoading, auth } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -72,7 +73,7 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
                 redirectPath = `/login?redirect=${pathname}`;
             }
         } else {
-            const successfulLoginRedirect = searchParams.get('redirect');
+            const successfulLoginRedirect = redirectParam;
             if (isAuthPage) {
                 redirectPath = successfulLoginRedirect || (userRole === 'admin' ? '/admin/dashboard' : '/account');
             } else if (isAdminPage && userRole !== 'admin') {
@@ -91,7 +92,7 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
             setIsRouteAuthorized(true);
         }
 
-    }, [isDataLoading, user, userProfile, pathname, searchParams, router]);
+    }, [isDataLoading, user, userProfile, pathname, redirectParam, router]);
     
     // The render logic is now extremely simple.
     if (isRouteAuthorized) {

@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import Link from 'next/link';
@@ -48,7 +46,7 @@ export function WebinarCard({ course }: WebinarCardProps) {
         : course.courseDate ? new Date(course.courseDate) : null;
 
   return (
-    <Link href={`/webinar/${course.slug}`}>
+    <Link href={`/webinar/${course.id}`}>
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="p-0">
           <div className="relative">

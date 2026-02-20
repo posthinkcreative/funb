@@ -14,7 +14,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { LayoutGrid, BookCopy, Users, Settings, LogOut, ChevronDown, Eye, Star } from 'lucide-react';
+import { LayoutGrid, BookCopy, Users, Settings, LogOut, ChevronDown, Eye, Star, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import AdminFooter from './_components/admin-footer';
 import { cn } from '@/lib/utils';

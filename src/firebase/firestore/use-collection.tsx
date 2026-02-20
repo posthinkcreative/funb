@@ -7,7 +7,6 @@ import {
   FirestoreError,
   QuerySnapshot,
 } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 export type WithId<T> = T & { id: string };
@@ -49,26 +48,28 @@ export function useCollection<T = any>(
         setError(null);
       },
       (err: FirestoreError) => {
-        let errorPath = "unknown_path";
-        try {
-          if (memoizedTargetRefOrQuery.path) {
-            errorPath = memoizedTargetRefOrQuery.path;
-          } else if (memoizedTargetRefOrQuery._query?.path) {
-            errorPath = memoizedTargetRefOrQuery._query.path.toString();
-          }
-        } catch (e) {
-          errorPath = "query_complex_path";
-        }
-
+        console.error("useCollection Firestore Error:", err); // Log the actual error for debugging
+            
+        // The Firestore error for a missing index has the code 'failed-precondition'
         if (err.code === 'failed-precondition') {
           setError(err); 
         } else {
+          // For other errors like permissions, create a contextual error but don't crash the app.
+          let errorPath = "unknown_path";
+          try {
+            if (memoizedTargetRefOrQuery.path) {
+              errorPath = memoizedTargetRefOrQuery.path;
+            } else if (memoizedTargetRefOrQuery._query?.path) {
+              errorPath = memoizedTargetRefOrQuery._query.path.toString();
+            }
+          } catch (e) {
+            errorPath = "query_complex_path";
+          }
           const contextualError = new FirestorePermissionError({
             operation: 'list',
             path: errorPath,
           });
           setError(contextualError);
-          if (errorEmitter) errorEmitter.emit('permission-error', contextualError);
         }
 
         setData(null);

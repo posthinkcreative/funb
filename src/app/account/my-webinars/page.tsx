@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, getDoc, DocumentSnapshot } from 'firebase/firestore';
 import { WebinarCard } from "@/components/webinar-card";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import type { Course } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -38,6 +38,7 @@ export default function MyWebinarsPage() {
     };
 
     const fetchPurchasedCourses = async () => {
+      if (!firestore) return;
       try {
         setIsLoadingCourses(true);
         const userRef = doc(firestore, "users", user.uid);
@@ -48,9 +49,18 @@ export default function MyWebinarsPage() {
           const enrolledCourseIds = userData.enrolledCourseIds || [];
           
           if (enrolledCourseIds.length > 0) {
-            const coursesQuery = query(collection(firestore, "webinars"), where(documentId(), "in", enrolledCourseIds));
-            const coursesSnapshot = await getDocs(coursesQuery);
-            const coursesData = coursesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Course[];
+            // Fetch each course document individually for robustness.
+            // This avoids the `where("in", ...)` query limit of 30 items.
+            const coursePromises: Promise<DocumentSnapshot>[] = enrolledCourseIds.map((courseId: string) => {
+                const courseRef = doc(firestore, 'webinars', courseId);
+                return getDoc(courseRef);
+            });
+            
+            const courseSnapshots = await Promise.all(coursePromises);
+            
+            const coursesData = courseSnapshots
+                .filter(snapshot => snapshot.exists())
+                .map(snapshot => ({ ...snapshot.data(), id: snapshot.id })) as Course[];
             
             setPurchasedCourses(coursesData);
           } else {

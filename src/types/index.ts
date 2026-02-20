@@ -4,6 +4,7 @@ export type Instructor = {
   title: string;
   bio: string;
   avatarUrl: string;
+  sortOrder?: number;
 };
 
 export type Review = {
@@ -52,6 +53,7 @@ export type Course = {
   schedule?: string;
   enrollmentCount?: number;
   status: 'Published' | 'Draft' | 'Archived';
+  sortOrder?: number;
   createdAt?: any;
 };
 

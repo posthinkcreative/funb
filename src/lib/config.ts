@@ -18,6 +18,7 @@ export const courseFormSchema = z.object({
   level: z.string().optional(),
   schedule: z.string().optional(),
   status: z.enum(['Published', 'Draft', 'Archived']),
+  sortOrder: z.number().optional(),
   features: z.array(z.object({ value: z.string().min(1, { message: "Please enter a value." }) })),
   modules: z.array(
     z.object({
