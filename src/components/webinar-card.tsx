@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -46,7 +47,7 @@ export function WebinarCard({ course }: WebinarCardProps) {
         : course.courseDate ? new Date(course.courseDate) : null;
 
   return (
-    <Link href={`/webinar/${course.id}`}>
+    <Link href={`/webinar/${course.slug}`}>
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="p-0">
           <div className="relative">
@@ -58,20 +59,22 @@ export function WebinarCard({ course }: WebinarCardProps) {
               height={400}
               className="w-full h-48 object-cover"
             />
-             <Badge className="absolute top-3 right-3" variant="default">
-                {displayPrice.final ? (
-                    <>
-                        <span className="text-xs line-through opacity-70 mr-2">{displayPrice.original}</span>
-                        <span>{displayPrice.final}</span>
-                    </>
-                ) : (
-                    displayPrice.original || '...'
-                )}
-             </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
-          <Badge variant="secondary" className="mb-2">{course.category}</Badge>
+          <div className="flex justify-between items-start mb-2">
+              <Badge variant="secondary">{course.category}</Badge>
+              <div className="text-right">
+                {displayPrice.final ? (
+                    <>
+                        <p className="text-lg font-bold text-primary">{displayPrice.final}</p>
+                        <p className="text-xs text-muted-foreground line-through">{displayPrice.original}</p>
+                    </>
+                ) : (
+                    <p className="text-lg font-bold text-primary">{displayPrice.original || '...'}</p>
+                )}
+              </div>
+          </div>
           <h3 className="text-lg font-bold font-headline mb-2">{course.title}</h3>
           <p className="text-sm text-muted-foreground mb-4">{course.instructor.name}</p>
           <div className="space-y-2 text-sm text-muted-foreground">
