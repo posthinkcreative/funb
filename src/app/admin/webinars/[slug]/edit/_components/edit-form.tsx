@@ -30,9 +30,20 @@ import { courseFormSchema } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useFirestore, useStorage, useUser, useCollection, useMemoFirebase } from "@/firebase"
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
-import { doc, updateDoc, collection, setDoc, query, orderBy } from "firebase/firestore"
+import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage"
+import { doc, updateDoc, collection, setDoc, query, orderBy, deleteDoc } from "firebase/firestore"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 const generateSlug = (title: string) => {
@@ -130,6 +141,67 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
 
   const { fields: featureFields, append: appendFeature, remove: removeFeature, move: moveFeature } = useFieldArray({ control: form.control, name: "features" });
   const { fields: moduleFields, append: appendModule, remove: removeModule, move: moveModule } = useFieldArray({ control: form.control, name: "modules" });
+
+  const handleDelete = async () => {
+    if (!firestore || !storage || !user || !course) {
+        toast({ title: "Error", description: "Cannot perform deletion. Services not ready.", variant: "destructive" });
+        return;
+    }
+
+    setIsSubmitting(true);
+    try {
+        await user.getIdToken(true);
+
+        const courseRef = doc(firestore, 'webinars', course.id);
+
+        // Array to hold promises for file deletions
+        const deleteFilePromises = [];
+
+        // Schedule image for deletion if it's a Firebase Storage URL
+        if (course.imageUrl && course.imageUrl.includes('firebasestorage.googleapis.com')) {
+            const imageRef = ref(storage, course.imageUrl);
+            deleteFilePromises.push(deleteObject(imageRef).catch(error => {
+                // If object doesn't exist, we don't need to throw an error
+                if (error.code !== 'storage/object-not-found') {
+                    console.error("Failed to delete image:", error);
+                }
+            }));
+        }
+
+        // Schedule video for deletion if it's a Firebase Storage URL
+        if (course.videoUrl && course.videoUrl.includes('firebasestorage.googleapis.com')) {
+            const videoRef = ref(storage, course.videoUrl);
+            deleteFilePromises.push(deleteObject(videoRef).catch(error => {
+                if (error.code !== 'storage/object-not-found') {
+                    console.error("Failed to delete video:", error);
+                }
+            }));
+        }
+
+        // Wait for all file deletions to attempt to complete
+        await Promise.all(deleteFilePromises);
+
+        // Delete the document from Firestore
+        await deleteDoc(courseRef);
+
+        toast({
+            title: 'Webinar Deleted',
+            description: `The webinar "${course.title}" has been permanently removed.`,
+        });
+
+        router.push("/admin/webinars");
+
+    } catch (error: any) {
+        console.error("Failed to delete webinar:", error);
+        toast({
+            title: 'Deletion Failed',
+            description: error.message || 'An unexpected error occurred.',
+            variant: 'destructive',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
 
   const handleSave = (status: "Published" | "Draft") => async (values: z.infer<typeof courseFormSchema>) => {
     setIsSubmitting(true);
@@ -427,6 +499,56 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                     </div>
                 </CardContent>
             </Card>
+            
+            <Card>
+                <CardHeader><CardTitle>What You'll Learn</CardTitle><CardDescription>List key skills. Drag to reorder.</CardDescription></CardHeader>
+                <CardContent className="space-y-4">
+                    {featureFields.map((field, index) => (
+                        <div key={field.id} className={`flex items-center gap-2 transition-opacity ${draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleFeatureDragStart(index)} onDragOver={handleFeatureDragOver} onDrop={() => handleFeatureDrop(index)}>
+                            <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex"><GripVertical /><span className="sr-only">Drag</span></Button>
+                            <FormField control={form.control} name={`features.${index}.value`} render={({ field }) => (<FormItem className="flex-grow"><FormControl><Input placeholder={`e.g. Master modern web development`} {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex flex-col">
+                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === 0} onClick={() => moveFeature(index, index - 1)}><ArrowUp className="h-4 w-4" /><span className="sr-only">Up</span></Button>
+                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === featureFields.length - 1} onClick={() => moveFeature(index, index + 1)}><ArrowDown className="h-4 w-4" /><span className="sr-only">Down</span></Button>
+                            </div>
+                            <Button type="button" variant="destructive" size="icon" onClick={() => removeFeature(index)}><Trash /><span className="sr-only">Remove</span></Button>
+                        </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendFeature({ value: "" })}><PlusCircle className="mr-2 h-4 w-4" />Add Feature</Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Danger Zone</CardTitle>
+                    <CardDescription>Be careful, these actions are not reversible.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full" disabled={totalLoading}>
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete this webinar
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the
+                                    webinar "{course.title}" and all of its associated data, including uploaded images and videos.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </CardContent>
+            </Card>
           </div>
 
           <div className="lg:col-span-1 space-y-8">
@@ -612,24 +734,6 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                  <FormField control={form.control} name="courseDate" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Date</FormLabel><DatePicker value={field.value} onSelect={field.onChange} className="w-full" /><FormMessage /></FormItem>)} />
                  <FormField control={form.control} name="courseTime" render={({ field }) => (<FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>)} />
               </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader><CardTitle>What You'll Learn</CardTitle><CardDescription>List key skills. Drag to reorder.</CardDescription></CardHeader>
-                <CardContent className="space-y-4">
-                    {featureFields.map((field, index) => (
-                        <div key={field.id} className={`flex items-center gap-2 transition-opacity ${draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleFeatureDragStart(index)} onDragOver={handleFeatureDragOver} onDrop={() => handleFeatureDrop(index)}>
-                            <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex"><GripVertical /><span className="sr-only">Drag</span></Button>
-                            <FormField control={form.control} name={`features.${index}.value`} render={({ field }) => (<FormItem className="flex-grow"><FormControl><Input placeholder={`e.g. Master modern web development`} {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>)} />
-                            <div className="flex flex-col">
-                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === 0} onClick={() => moveFeature(index, index - 1)}><ArrowUp className="h-4 w-4" /><span className="sr-only">Up</span></Button>
-                                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === featureFields.length - 1} onClick={() => moveFeature(index, index + 1)}><ArrowDown className="h-4 w-4" /><span className="sr-only">Down</span></Button>
-                            </div>
-                            <Button type="button" variant="destructive" size="icon" onClick={() => removeFeature(index)}><Trash /><span className="sr-only">Remove</span></Button>
-                        </div>
-                    ))}
-                    <Button type="button" variant="outline" size="sm" onClick={() => appendFeature({ value: "" })}><PlusCircle className="mr-2 h-4 w-4" />Add Feature</Button>
-                </CardContent>
             </Card>
 
             <div className="space-y-2">
