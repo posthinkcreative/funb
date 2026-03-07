@@ -3,24 +3,42 @@
 
 import { Facebook, Twitter, Instagram } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { Skeleton } from "./ui/skeleton";
+
+interface WebsiteSetting {
+  bootcampTitle?: string;
+  bootcampSubtitle?: string;
+}
+
+const SETTINGS_DOC_ID = 'main';
 
 export default function SiteFooter() {
   const [isMounted, setIsMounted] = useState(false);
   const currentYear = new Date().getFullYear();
+  const firestore = useFirestore();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  const settingsDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'website_settings', SETTINGS_DOC_ID);
+  }, [firestore]);
+
+  const { data: settings, isLoading } = useDoc<WebsiteSetting>(settingsDocRef);
 
   if (!isMounted) {
-    // Render a skeleton or null on the server to avoid hydration mismatch
+    // Render nothing on server to avoid hydration mismatch
     return null;
   }
 
+  const title = settings?.bootcampTitle || "FunB";
+  const subtitle = settings?.bootcampSubtitle || "Unlock your potential with our AI-powered learning platform.";
 
   return (
     <footer 
@@ -35,30 +53,20 @@ export default function SiteFooter() {
             <Link href="/" className="flex items-center space-x-2 mb-4">
                 <span className="text-xl font-bold font-headline text-white">FunB</span>
             </Link>
-            <p className="text-white/80 text-sm max-w-xs">
-              Unlock your potential with our AI-powered learning platform.
-            </p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-40 bg-white/20" />
+                <Skeleton className="h-4 w-32 bg-white/20" />
+              </div>
+            ) : (
+              <div className="text-white/80 text-sm max-w-xs space-y-1">
+                <p className="font-semibold">{title}</p>
+                <p className="italic">{subtitle}</p>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col md:flex-row gap-10 md:gap-16">
-            <div className="col-span-1">
-              <h3 className="font-headline font-semibold mb-4 text-white">Courses</h3>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="text-white/80 hover:text-white">Development</Link></li>
-                <li><Link href="#" className="text-white/80 hover:text-white">Design</Link></li>
-                <li><Link href="#" className="text-white/80 hover:text-white">Business</Link></li>
-                <li><Link href="#" className="text-white/80 hover:text-white">Marketing</Link></li>
-              </ul>
-            </div>
-            <div className="col-span-1">
-              <h3 className="font-headline font-semibold mb-4 text-white">Company</h3>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="text-white/80 hover:text-white">About Us</Link></li>
-                <li><Link href="#" className="text-white/80 hover:text-white">Careers</Link></li>
-                <li><Link href="#" className="text-white/80 hover:text-white">Press</Link></li>
-                <li><Link href="#" className="text-white/80 hover:text-white">Contact</Link></li>
-              </ul>
-            </div>
             <div className="col-span-1">
               <h3 className="font-headline font-semibold mb-4 text-white">Follow Us</h3>
               <div className="flex space-x-4">

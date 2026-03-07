@@ -1,12 +1,11 @@
-
 "use client";
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Course } from '@/types';
-import { Star, Users, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import React from 'react';
 
@@ -50,14 +49,13 @@ export function WebinarCard({ course }: WebinarCardProps) {
     <Link href={`/webinar/${course.slug}`}>
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="p-0">
-          <div className="relative">
+          <div className="relative aspect-video w-full overflow-hidden">
             <Image
               src={course.imageUrl}
               data-ai-hint="online course"
               alt={course.title}
-              width={600}
-              height={400}
-              className="w-full h-48 object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         </CardHeader>
@@ -92,17 +90,6 @@ export function WebinarCard({ course }: WebinarCardProps) {
             )}
           </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto">
-            <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
-                <span>{course.rating}</span>
-                <span className="text-xs">({course.reviewCount} reviews)</span>
-            </div>
-             <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>{course.enrollmentCount || 0} students</span>
-            </div>
-        </CardFooter>
       </Card>
     </Link>
   );

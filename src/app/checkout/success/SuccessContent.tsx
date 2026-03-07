@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -15,6 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function SuccessContent() {
   const searchParams = useSearchParams();
   const courseId = searchParams.get('courseId');
+  const qtyParam = searchParams.get('qty');
+  const quantity = parseInt(qtyParam || '1', 10);
   const firestore = useFirestore();
 
   const webinarDocRef = useMemoFirebase(() => {
@@ -29,25 +30,27 @@ export default function SuccessContent() {
   React.useEffect(() => {
     if (course) {
         const { price, discountType, discountValue } = course;
-        let finalPrice: number = price;
+        let finalUnitPrice: number = price;
 
         if (discountType && discountType !== 'none' && discountValue && discountValue > 0) {
             if (discountType === 'percentage') {
-                finalPrice = price * (1 - discountValue / 100);
+                finalUnitPrice = price * (1 - discountValue / 100);
             } else if (discountType === 'nominal') {
-                finalPrice = price - discountValue;
+                finalUnitPrice = price - discountValue;
             }
         }
+        
+        const totalPaid = finalUnitPrice * quantity;
         
         const formatted = new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(finalPrice);
+        }).format(totalPaid);
         setFormattedPrice(formatted);
     }
-  }, [course]);
+  }, [course, quantity]);
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12 flex items-center justify-center min-h-[calc(100vh-200px)]">
@@ -78,8 +81,12 @@ export default function SuccessContent() {
                 <div>
                     <p className="font-medium">{course.title}</p>
                     <p className="text-sm text-muted-foreground">{course.category}</p>
+                    <p className="text-xs font-medium text-primary mt-1">Quantity: {quantity}</p>
                 </div>
-                <p className="font-bold">{formattedPrice || '...'}</p>
+                <div className="text-right">
+                    <p className="font-bold">{formattedPrice || '...'}</p>
+                    <p className="text-[10px] text-muted-foreground">Total Paid</p>
+                </div>
               </div>
             </div>
           ) : (

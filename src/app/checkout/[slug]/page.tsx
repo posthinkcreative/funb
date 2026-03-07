@@ -11,6 +11,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, arrayUnion, collection, addDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Minus, Plus } from 'lucide-react';
 
 export default function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = React.use(params);
@@ -20,7 +21,6 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   const { toast } = useToast();
   const router = useRouter();
   
-  // Fetch the webinar directly by its document ID, which is the slug from the URL.
   const courseDocRef = useMemoFirebase(() => {
     if (!firestore || !slug) return null;
     return doc(firestore, 'webinars', slug);
@@ -28,64 +28,71 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
 
   const { data: course, isLoading: isCourseLoading } = useDoc<Course>(courseDocRef);
 
-  const [displayPrice, setDisplayPrice] = React.useState('');
+  const [quantity, setQuantity] = React.useState(1);
+  const [prices, setPrices] = React.useState({ unit: 0, total: 0, formattedUnit: '', formattedTotal: '' });
   const [isProcessing, setIsProcessing] = React.useState(false);
   
   React.useEffect(() => {
     if (course) {
         const { price, discountType, discountValue } = course;
-        let finalPrice: number = price;
+        let finalUnitPrice: number = price;
 
         if (discountType && discountType !== 'none' && discountValue && discountValue > 0) {
             if (discountType === 'percentage') {
-                finalPrice = price * (1 - discountValue / 100);
+                finalUnitPrice = price * (1 - discountValue / 100);
             } else if (discountType === 'nominal') {
-                finalPrice = price - discountValue;
+                finalUnitPrice = price - discountValue;
             }
         }
 
-        const formatted = new Intl.NumberFormat("id-ID", {
+        const totalPrice = finalUnitPrice * quantity;
+
+        const formatCurrency = (val: number) => new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-        }).format(finalPrice);
-        setDisplayPrice(formatted);
+        }).format(val);
+
+        setPrices({
+            unit: finalUnitPrice,
+            total: totalPrice,
+            formattedUnit: formatCurrency(finalUnitPrice),
+            formattedTotal: formatCurrency(totalPrice)
+        });
     }
-  }, [course]);
+  }, [course, quantity]);
   
 
   const handlePayment = async () => {
     if (!user) {
-      // The redirect should use the document ID, which is the slug from the URL.
       router.push(`/login?redirect=/checkout/${slug}`);
       return;
     }
     if (!course) return;
     setIsProcessing(true);
     try {
-        let finalPrice: number = course.price;
-        if (course.discountType && course.discountType !== 'none' && course.discountValue && course.discountValue > 0) {
-            if (course.discountType === 'percentage') {
-                finalPrice = course.price * (1 - course.discountValue / 100);
-            } else {
-                finalPrice = course.price - course.discountValue;
-            }
-        }
       const webinarRef = doc(firestore, 'webinars', course.id);
       const userRef = doc(firestore, 'users', user.uid);
       const transactionsRef = collection(firestore, 'transactions');
-      await updateDoc(webinarRef, { enrollmentCount: increment(1) });
+      
+      // Update enrollment count by quantity
+      await updateDoc(webinarRef, { enrollmentCount: increment(quantity) });
+      
+      // Add to user's enrolled courses (ID is unique in arrayUnion)
       await updateDoc(userRef, { enrolledCourseIds: arrayUnion(course.id) });
+      
       await addDoc(transactionsRef, {
         userId: user.uid,
         courseId: course.id,
+        quantity: quantity,
         transactionDate: serverTimestamp(),
-        amount: finalPrice,
+        amount: prices.total,
         paymentMethod: 'iPaymu',
         ipaymuReference: `demo-${Date.now()}`
       });
-      router.push(`/checkout/success?courseId=${course.id}`);
+      
+      router.push(`/checkout/success?courseId=${course.id}&qty=${quantity}`);
     } catch (error) {
       console.error("Error enrolling in webinar: ", error);
       toast({
@@ -97,6 +104,14 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       setIsProcessing(false);
     }
   }
+
+  const handleQuantityChange = (type: 'inc' | 'dec') => {
+    if (type === 'inc') {
+        setQuantity(prev => prev + 1);
+    } else if (type === 'dec' && quantity > 1) {
+        setQuantity(prev => prev - 1);
+    }
+  };
 
   const isLoading = isUserLoading || isCourseLoading;
 
@@ -128,7 +143,6 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     )
   }
 
-  // If loading is finished and the course is still null, it means the document was not found.
   if (!course) {
     notFound();
   }
@@ -150,16 +164,41 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
               data-ai-hint="online course summary"
               alt={course.title}
               width={200}
-              height={125}
-              className="rounded-lg object-cover w-full md:w-1/4 h-auto"
+              height={112} // 16:9
+              className="rounded-lg object-cover w-full md:w-1/4 h-auto aspect-video"
             />
             <div className="flex-grow">
               <h2 className="text-xl font-semibold font-headline">{course.title}</h2>
               <p className="text-muted-foreground text-sm">Category: {course.category}</p>
               <p className="text-muted-foreground text-sm">Instructor: {course.instructor.name}</p>
+              
+              <div className="flex items-center gap-4 mt-4">
+                <span className="text-sm font-medium">Quantity:</span>
+                <div className="flex items-center border rounded-md">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-none border-r"
+                        onClick={() => handleQuantityChange('dec')}
+                        disabled={quantity <= 1 || isProcessing}
+                    >
+                        <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-10 text-center text-sm font-semibold">{quantity}</span>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-none border-l"
+                        onClick={() => handleQuantityChange('inc')}
+                        disabled={isProcessing}
+                    >
+                        <Plus className="h-3 w-3" />
+                    </Button>
+                </div>
+              </div>
             </div>
             <div className="text-2xl font-bold text-right md:text-left">
-              {displayPrice || '...'}
+              {prices.formattedTotal || '...'}
             </div>
           </div>
           <Separator className="my-6" />
@@ -182,8 +221,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
             </div>
             <div className="space-y-2 text-right">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>{displayPrice || '...'}</span>
+                <span className="text-muted-foreground">Subtotal ({quantity}x {prices.formattedUnit})</span>
+                <span>{prices.formattedTotal || '...'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Tax (0%)</span>
@@ -192,7 +231,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
               <Separator/>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>{displayPrice || '...'}</span>
+                <span>{prices.formattedTotal || '...'}</span>
               </div>
             </div>
           </div>

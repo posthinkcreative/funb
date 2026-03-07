@@ -113,6 +113,9 @@ export default function LayoutLoader({
                             <SidebarClosingLink href="/admin/settings/intro">Intro Section</SidebarClosingLink>
                           </SidebarMenuButton>
                           <SidebarMenuButton asChild variant="ghost" className="w-full justify-start">
+                            <SidebarClosingLink href="/admin/settings/about">About Us</SidebarClosingLink>
+                          </SidebarMenuButton>
+                          <SidebarMenuButton asChild variant="ghost" className="w-full justify-start">
                             <SidebarClosingLink href="/admin/settings/titles">Section Titles</SidebarClosingLink>
                           </SidebarMenuButton>
                           <SidebarMenuButton asChild variant="ghost" className="w-full justify-start">

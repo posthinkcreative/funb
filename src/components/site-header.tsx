@@ -118,7 +118,7 @@ function HeaderContent() {
 
   const navLinks = [
     { href: "/webinar", label: "Webinar" },
-    { href: "#", label: "Bootcamps" },
+    { href: "/about-us", label: "About Us" },
   ];
 
   return (

@@ -8,15 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const WebinarCardSkeleton = () => (
     <div className="flex flex-col h-full overflow-hidden transition-all duration-300 rounded-lg border">
-        <Skeleton className="w-full h-48" />
+        <Skeleton className="w-full aspect-video" />
         <div className="p-4 flex-grow">
             <Skeleton className="h-4 w-20 mb-2" />
             <Skeleton className="h-6 w-3/4 mb-2" />
             <Skeleton className="h-4 w-1/2" />
-        </div>
-        <div className="p-4 pt-0 flex justify-between items-center text-sm border-t mt-auto">
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-5 w-16" />
         </div>
     </div>
 );

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, setDoc } from 'firebase/firestore';
@@ -9,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Info } from 'lucide-react';
 
 interface WebsiteSetting {
   introTitle?: string;
@@ -16,7 +18,7 @@ interface WebsiteSetting {
 }
 
 const SETTINGS_DOC_ID = 'main';
-const PERMISSION_ERROR_MESSAGE = "Permission denied. Please ensure your account has 'admin' privileges and your session is active.";
+const PERMISSION_ERROR_MESSAGE = "Permission denied. Please ensure your account has 'admin' privileges.";
 
 export default function AdminIntroPage() {
   const firestore = useFirestore();
@@ -55,7 +57,7 @@ export default function AdminIntroPage() {
 
         toast({
             title: 'Intro Section Updated',
-            description: 'The homepage intro content has been saved.',
+            description: 'Homepage intro content has been saved successfully.',
         });
 
     } catch(error: any) {
@@ -79,7 +81,7 @@ export default function AdminIntroPage() {
         <div>
           <h2 className="text-2xl font-bold font-headline">Homepage Intro Section</h2>
           <p className="text-muted-foreground">
-            Edit the main title and description on the homepage.
+            Edit teks utama yang muncul tepat di bawah banner homepage.
           </p>
         </div>
       </div>
@@ -88,7 +90,7 @@ export default function AdminIntroPage() {
         <CardHeader>
           <CardTitle>Intro Content</CardTitle>
           <CardDescription>
-            This content appears below the main hero carousel. Use new lines in the text boxes for line breaks.
+            Gunakan baris baru (Enter) jika Anda ingin teks terputus di titik tertentu pada tampilan depan.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -100,24 +102,32 @@ export default function AdminIntroPage() {
           ) : (
              <div className="space-y-6">
                 <div className="grid w-full gap-1.5">
-                    <Label htmlFor="intro-title">Title</Label>
+                    <Label htmlFor="intro-title">Judul Utama</Label>
                     <Textarea
                         id="intro-title"
-                        placeholder="Unlock Your Potential..."
+                        placeholder="Contoh: Unlock Your Potential with EduBoost"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         rows={3}
+                        className="text-lg font-bold"
                         disabled={isSaving}
                     />
                 </div>
                 <div className="grid w-full gap-1.5">
-                    <Label htmlFor="intro-description">Description</Label>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="intro-description">Deskripsi</Label>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                            <Info className="w-3 h-3" />
+                            <span>Mendukung teks multi-baris.</span>
+                        </div>
+                    </div>
                     <Textarea
                         id="intro-description"
-                        placeholder="Our AI-powered platform provides..."
+                        placeholder="Tuliskan deskripsi singkat platform Anda..."
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        rows={6}
+                        rows={8}
+                        className="text-base"
                         disabled={isSaving}
                     />
                 </div>
@@ -128,8 +138,9 @@ export default function AdminIntroPage() {
               <Button
                 onClick={handleSave}
                 disabled={!hasChanges || isSaving || isLoadingSettings}
+                size="lg"
               >
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
           </div>
         </CardContent>
@@ -137,5 +148,3 @@ export default function AdminIntroPage() {
     </div>
   );
 }
-
-    

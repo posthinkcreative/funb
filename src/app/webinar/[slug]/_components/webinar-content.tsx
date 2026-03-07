@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Star, Users, BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity, X } from 'lucide-react';
+import { BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity, X } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -128,16 +128,6 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
               </CardHeader>
               <CardContent className="text-center">
                   <p className="text-lg text-muted-foreground max-w-3xl mx-auto">{course.description}</p>
-                  <div className="flex items-center justify-center gap-6 text-sm mt-6 text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                      <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
-                      <span>{course.rating} ({course.reviewCount} reviews)</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                      <Users className="w-5 h-5" />
-                      <span>{enrollmentCount} students</span>
-                      </div>
-                  </div>
               </CardContent>
             </Card>
 
@@ -192,33 +182,6 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                     <p className="text-muted-foreground">{course.instructor.title}</p>
                     </div>
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground">{course.instructor.bio}</p>
-                </div>
-
-                <Separator className="my-12" />
-
-                <h2 className="text-2xl font-headline font-bold">Student feedback</h2>
-                <div className="space-y-6">
-                {course.reviews.map(review => (
-                    <div key={review.id} className="bg-background p-6 rounded-lg border shadow-lg">
-                    <div className="flex items-center gap-4 mb-2">
-                        <Avatar>
-                        <AvatarImage src={review.user.avatarUrl} alt={review.user.name} />
-                        <AvatarFallback>{review.user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                        <h4 className="font-semibold">{review.user.name}</h4>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <div className="flex text-amber-500">
-                            {[...Array(5)].map((_, i) => <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : ''}`} />)}
-                            </div>
-                            <span>{review.createdAt}</span>
-                        </div>
-                        </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{review.comment}</p>
-                    </div>
-                ))}
                 </div>
             </div>
           </div>
@@ -245,7 +208,9 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                         playsInline
                     />
                 ) : (
-                    <Image src={course.imageUrl} data-ai-hint="online learning course" alt={course.title} width={600} height={400} className="w-full object-cover" />
+                    <div className="relative aspect-video w-full overflow-hidden">
+                        <Image src={course.imageUrl} data-ai-hint="online learning course" alt={course.title} fill className="object-cover" />
+                    </div>
                 )}
                 
                 {!isFullscreen && (
@@ -317,10 +282,6 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                         <span>{course.schedule} schedule</span>
                         </li>
                     )}
-                    <li className="flex items-center gap-3">
-                        <Users className="w-5 h-5 text-primary" />
-                        <span>{enrollmentCount} students enrolled</span>
-                    </li>
                     </ul>
                 </CardContent>
               )}
