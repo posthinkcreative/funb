@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from "next/link";
@@ -50,7 +51,7 @@ function UserNav() {
     };
 
     if (isProfileLoading || !user) {
-        return <div className="h-9 w-9 rounded-full bg-muted animate-pulse"></div>;
+        return <div className="h-9 w-9 rounded-full bg-white/20 animate-pulse"></div>;
     }
 
     const getInitials = (name: string | null | undefined) => {
@@ -68,9 +69,9 @@ function UserNav() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-9 w-9">
+            <Avatar className="h-9 w-9 border border-white/20">
               <AvatarImage src={user.photoURL || `https://avatar.vercel.sh/${user.uid}.png`} data-ai-hint="user avatar" alt={user.displayName || 'User'} />
-              <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+              <AvatarFallback className="bg-white/10 text-primary-foreground">{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -122,12 +123,20 @@ function HeaderContent() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-accent/90 text-primary-foreground backdrop-blur supports-[backdrop-filter]:bg-accent/80">
-      <div className="flex h-16 items-center px-4">
+    <header className="sticky top-0 z-50 w-full border-b bg-accent/90 backdrop-blur-md shadow-sm">
+      <div className="flex h-16 items-center px-4 max-w-7xl mx-auto">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Image src="/logo.png" alt="FunB Logo" width={32} height={32} />
-            <span className="hidden font-bold font-headline sm:inline-block">
+            <div className="flex items-center justify-center overflow-hidden">
+                <Image 
+                  src="/favicon.ico" 
+                  alt="Logo" 
+                  width={40} 
+                  height={40}
+                  className="object-contain"
+                />
+            </div>
+            <span className="hidden font-bold font-headline sm:inline-block text-primary-foreground">
               FunB
             </span>
           </Link>
@@ -149,7 +158,7 @@ function HeaderContent() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden hover:bg-white/10"
+              className="md:hidden text-primary-foreground hover:bg-white/10"
             >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
@@ -161,8 +170,16 @@ function HeaderContent() {
               href="/"
               className="mr-6 flex items-center space-x-2"
             >
-              <Image src="/logo.png" alt="FunB Logo" width={32} height={32} />
-              <span className="font-bold font-headline">FunB</span>
+              <div className="flex items-center justify-center overflow-hidden">
+                <Image 
+                  src="/favicon.ico" 
+                  alt="Logo" 
+                  width={40} 
+                  height={40}
+                  className="object-contain"
+                />
+              </div>
+              <span className="font-bold font-headline text-primary">FunB</span>
             </Link>
             <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
                 <div className="flex flex-col space-y-3">
@@ -170,6 +187,7 @@ function HeaderContent() {
                     <Link
                       key={link.label}
                       href={link.href}
+                      className="text-lg font-medium"
                     >
                       {link.label}
                     </Link>
@@ -181,15 +199,15 @@ function HeaderContent() {
         
         <div className="flex flex-1 items-center justify-end space-x-2">
             {isUserLoading ? (
-              <div className="h-8 w-8 rounded-full bg-gray-300 animate-pulse"></div>
+              <div className="h-8 w-8 rounded-full bg-white/20 animate-pulse"></div>
             ) : user ? (
                 <UserNav />
             ) : (
                 <>
-                    <Button variant="ghost" asChild className="hover:bg-white/10">
+                    <Button variant="ghost" asChild className="text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
                         <Link href="/login">Log In</Link>
                     </Button>
-                    <Button asChild className="bg-primary-foreground text-accent hover:bg-primary-foreground/90">
+                    <Button asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
                         <Link href="/signup">Sign Up</Link>
                     </Button>
                 </>
@@ -202,7 +220,7 @@ function HeaderContent() {
 
 export default function SiteHeader() {
   return (
-    <Suspense fallback={<div className="h-16 border-b"></div>}>
+    <Suspense fallback={<div className="h-16 border-b bg-accent/90"></div>}>
       <HeaderContent />
     </Suspense>
   )

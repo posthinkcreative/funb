@@ -124,6 +124,9 @@ export default function LayoutLoader({
                           <SidebarMenuButton asChild variant="ghost" className="w-full justify-start">
                             <SidebarClosingLink href="/admin/settings/video">Bootcamp Video</SidebarClosingLink>
                           </SidebarMenuButton>
+                          <SidebarMenuButton asChild variant="ghost" className="w-full justify-start">
+                            <SidebarClosingLink href="/admin/settings/footer">Footer Settings</SidebarClosingLink>
+                          </SidebarMenuButton>
                         </div>
                       </CollapsibleContent>
                   </Collapsible>

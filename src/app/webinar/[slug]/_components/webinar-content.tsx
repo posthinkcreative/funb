@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity, X } from 'lucide-react';
+import { BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity, X, CheckCircle2, PlayCircle } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +15,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Course } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 
 interface WebinarContentProps {
@@ -25,11 +27,23 @@ interface WebinarContentProps {
 
 
 export function WebinarContent({ course, relatedCourses, enrollmentCount }: WebinarContentProps) {
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   const [displayPrice, setDisplayPrice] = React.useState({ original: '', final: '' });
+
+  // Fetch user profile to check enrollment status
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<any>(userDocRef);
+  
+  const isEnrolled = userProfile?.enrolledCourseIds?.includes(course.id);
   
   const courseDateObject = course.courseDate && typeof (course.courseDate as any).toDate === 'function' 
     ? (course.courseDate as any).toDate() 
@@ -104,21 +118,23 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
   };
 
   return (
-    <div className="bg-secondary/50">
-      <section className="relative h-[300px] md:h-[450px] bg-black">
-        <Image
-          src={course.imageUrl}
-          alt={course.title}
-          fill
-          style={{objectFit: 'cover'}}
-          className="absolute inset-0 z-0"
-          data-ai-hint="course hero background"
-          priority
-        />
-      </section>
+    <div className={cn("bg-secondary/50 min-h-screen flex flex-col", isFullscreen && "overflow-hidden h-screen bg-black")}>
+      {!isFullscreen && (
+        <section className="relative w-full aspect-video bg-black overflow-hidden flex-shrink-0">
+          <Image
+            src={course.imageUrl}
+            alt={course.title}
+            fill
+            style={{objectFit: 'cover'}}
+            className="absolute inset-0 z-0"
+            data-ai-hint="course hero background"
+            priority
+          />
+        </section>
+      )}
 
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid lg:grid-cols-3 gap-12">
+      <div className={cn("container mx-auto px-6 py-12 flex-grow", isFullscreen && "p-0 m-0 w-full max-w-none h-full")}>
+        <div className={cn("grid lg:grid-cols-3 gap-12", isFullscreen && "block h-full")}>
           
           <div className={cn("lg:col-span-2 space-y-8", isFullscreen && "hidden")}>
             <Card className="shadow-xl bg-background">
@@ -179,19 +195,25 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                     </Avatar>
                     <div>
                     <h3 className="text-xl font-bold font-headline text-primary">{course.instructor.name}</h3>
-                    <p className="text-muted-foreground">{course.instructor.title}</p>
+                    <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
                     </div>
                 </div>
                 </div>
             </div>
           </div>
 
-          <aside className="lg:sticky top-24 self-start">
-            <Card className="overflow-hidden shadow-xl bg-background">
+          <aside className={cn(
+            "lg:sticky top-8 self-start",
+            isFullscreen && "fixed inset-0 z-[10000] bg-black m-0 p-0 w-full h-full flex items-center justify-center"
+          )}>
+            <Card className={cn(
+              "overflow-hidden shadow-xl bg-background",
+              isFullscreen && "rounded-none border-0 shadow-none bg-black w-full h-full flex items-center justify-center"
+            )}>
               <div
                 className={cn(
-                  "relative", 
-                  isFullscreen && "fixed top-16 left-0 right-0 bottom-0 z-[9999] bg-black flex items-center justify-center"
+                  "relative w-full", 
+                  isFullscreen ? "h-full flex items-center justify-center" : "aspect-video"
                 )}
               >
                 {course.videoUrl && course.videoUrl.trim() !== '' ? (
@@ -208,7 +230,7 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                         playsInline
                     />
                 ) : (
-                    <div className="relative aspect-video w-full overflow-hidden">
+                    <div className={cn("relative aspect-video w-full overflow-hidden", isFullscreen && "h-full max-h-screen")}>
                         <Image src={course.imageUrl} data-ai-hint="online learning course" alt={course.title} fill className="object-cover" />
                     </div>
                 )}
@@ -236,8 +258,8 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                   </div>
                 )}
                  {isFullscreen && (
-                    <Button size="icon" variant="ghost" className="text-white hover:bg-black/50 hover:text-white absolute top-4 right-4 z-10" onClick={() => setIsFullscreen(false)}>
-                        <X className="w-6 h-6"/>
+                    <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 hover:text-white absolute top-6 right-6 z-[10001] bg-black/40 rounded-full" onClick={() => setIsFullscreen(false)}>
+                        <X className="w-8 h-8"/>
                         <span className="sr-only">Close Fullscreen</span>
                     </Button>
                 )}
@@ -245,18 +267,39 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
               
               {!isFullscreen && (
                 <CardContent className="p-6">
-                    <div className="flex items-baseline gap-2 mb-4">
-                        <h2 className="text-4xl font-bold">{displayPrice.final || displayPrice.original || '...'}</h2>
-                        {displayPrice.final && (
-                            <p className="text-2xl font-bold text-muted-foreground line-through">{displayPrice.original}</p>
-                        )}
-                    </div>
-                    <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold" asChild>
-                    <Link href={`/checkout/${course.id}`}>Register Now</Link>
-                    </Button>
-                    <Button size="lg" variant="outline" className="w-full mt-2">
-                    Add to Cart
-                    </Button>
+                    {isEnrolled ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-green-600 font-semibold mb-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span>You are enrolled!</span>
+                        </div>
+                        <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold" asChild>
+                          <Link href="/account/my-webinars">
+                            <PlayCircle className="mr-2 h-5 w-5" />
+                            Access Webinar
+                          </Link>
+                        </Button>
+                        <p className="text-xs text-center text-muted-foreground">
+                          Find all your learning materials in your account.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-baseline gap-2 mb-4">
+                            <h2 className="text-4xl font-bold">{displayPrice.final || displayPrice.original || '...'}</h2>
+                            {displayPrice.final && (
+                                <p className="text-2xl font-bold text-muted-foreground line-through">{displayPrice.original}</p>
+                            )}
+                        </div>
+                        <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold" asChild>
+                          <Link href={`/checkout/${course.id}`}>Register Now</Link>
+                        </Button>
+                        <Button size="lg" variant="outline" className="w-full mt-2">
+                          Add to Cart
+                        </Button>
+                      </>
+                    )}
+                    
                     <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
                     {courseDateObject && (
                         <li className="flex items-center gap-3">
@@ -289,16 +332,19 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
           </aside>
         </div>
 
-        <Separator className="my-12" />
-
-        <div>
-          <h2 className="text-3xl font-bold font-headline mb-8 text-center">Related Webinars</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedCourses.map(relatedCourse => (
-              <WebinarCard key={relatedCourse.id} course={relatedCourse} />
-            ))}
-          </div>
-        </div>
+        {!isFullscreen && (
+          <>
+            <Separator className="my-12" />
+            <div>
+              <h2 className="text-3xl font-bold font-headline mb-8 text-center">Related Webinars</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedCourses.map(relatedCourse => (
+                  <WebinarCard key={relatedCourse.id} course={relatedCourse} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
       </div>
     </div>
