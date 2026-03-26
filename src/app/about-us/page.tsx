@@ -39,9 +39,9 @@ export default function AboutUsPage() {
                         <Skeleton className="h-4 w-3/4" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Skeleton className="aspect-video w-full rounded-lg" />
-                        <Skeleton className="aspect-video w-full rounded-lg" />
-                        <Skeleton className="aspect-video w-full rounded-lg" />
+                        <Skeleton className="aspect-square w-full rounded-lg" />
+                        <Skeleton className="aspect-square w-full rounded-lg" />
+                        <Skeleton className="aspect-square w-full rounded-lg" />
                     </div>
                 </div>
             </div>
@@ -62,17 +62,17 @@ export default function AboutUsPage() {
                 {images.length > 0 && (
                     <div className="space-y-8">
                         <h2 className="text-2xl font-bold font-headline text-center mb-8">Our Gallery</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {images.map((url, index) => (
                                 <div 
                                     key={index} 
-                                    className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow group bg-muted"
+                                    className="relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow group bg-muted border border-border/50"
                                 >
                                     <Image 
                                         src={url} 
                                         alt={`About us ${index + 1}`}
                                         fill
-                                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                        className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
                                         unoptimized
                                     />
                                 </div>

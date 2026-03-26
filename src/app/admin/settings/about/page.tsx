@@ -121,18 +121,13 @@ export default function AdminAboutPage() {
   };
 
   const removeImage = async (urlToRemove: string) => {
-    // We only remove from the state here. 
-    // In a production app, you might want to also delete the object from Storage if it's no longer used.
-    // For simplicity in this demo, we'll just update the Firestore array on Save.
     setImages(prev => prev.filter(url => url !== urlToRemove));
-    
-    // Optional: Attempt to delete from storage if it's our own bucket
     if (urlToRemove.includes('firebasestorage.googleapis.com')) {
         try {
             const storageRef = ref(storage, urlToRemove);
             await deleteObject(storageRef);
         } catch (e) {
-            console.error("Could not delete from storage, might already be gone:", e);
+            console.error("Could not delete from storage:", e);
         }
     }
   };
@@ -209,7 +204,7 @@ export default function AdminAboutPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Photo Gallery</CardTitle>
-                    <CardDescription>Tambahkan beberapa foto untuk mempercantik halaman About Us.</CardDescription>
+                    <CardDescription>Tambahkan foto. Tampilan 1:1, tidak terpotong.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div 
@@ -258,12 +253,15 @@ export default function AdminAboutPage() {
                                             src={url} 
                                             alt={`Gallery ${idx}`} 
                                             fill 
-                                            className="object-cover"
+                                            className="object-contain p-1"
                                             unoptimized
                                         />
                                         <button 
-                                            onClick={() => removeImage(url)}
-                                            className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeImage(url);
+                                            }}
+                                            className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>

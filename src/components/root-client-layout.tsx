@@ -10,37 +10,32 @@ import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import useIdleTimeout from '@/hooks/use-idle-timeout';
 
-// This component is the key to solving hydration errors, permission errors, and hook order issues.
-// It acts as a gate, preventing children from rendering until all auth checks are complete and no redirection is needed.
+// AuthHandler ensures route authorization logic is central and stable.
 function AuthHandler({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const redirectParam = searchParams.get('redirect'); // Extract the param
+    const redirectParam = searchParams.get('redirect');
     const { user, isUserLoading, auth } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     
-    // This state is the single source of truth for rendering the children.
     const [isRouteAuthorized, setIsRouteAuthorized] = useState(false);
-    
-    // Wait for client-side mount to prevent hydration errors.
     const [hasMounted, setHasMounted] = useState(false);
+
     useEffect(() => {
         setHasMounted(true);
     }, []);
 
-    // Listen to the user's profile in real-time to react to role changes.
     const userDocRef = useMemoFirebase(() => {
         if (!user) return null;
         return doc(firestore, 'users', user.uid);
     }, [firestore, user]);
+
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<any>(userDocRef);
 
-    // Centralized loading state.
-    const isDataLoading = !hasMounted || isUserLoading || (user && isProfileLoading);
+    const isDataLoading = !hasMounted || isUserLoading || (!!user && isProfileLoading);
     
-    // Handle idle timeout
     const handleIdle = useCallback(() => {
         if (user && auth) {
             signOut(auth).then(() => {
@@ -51,17 +46,12 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
             });
         }
     }, [user, auth, toast]);
+
     useIdleTimeout(900000, handleIdle);
 
-    // This single effect now controls all authorization and redirection logic.
     useEffect(() => {
-        // 1. Wait until all data is loaded before making any decisions.
-        if (isDataLoading) {
-            setIsRouteAuthorized(false); // Keep the gate closed while loading.
-            return;
-        }
+        if (isDataLoading) return;
 
-        // 2. Once data is loaded, determine the redirect path.
         const userRole = userProfile?.role || 'customer';
         const isAuthPage = pathname === '/login' || pathname === '/signup';
         const isAdminPage = pathname.startsWith('/admin');
@@ -70,12 +60,11 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
 
         if (!user) {
             if (isAdminPage || isAccountPage) {
-                redirectPath = `/login?redirect=${pathname}`;
+                redirectPath = `/login?redirect=${encodeURIComponent(pathname)}`;
             }
         } else {
-            const successfulLoginRedirect = redirectParam;
             if (isAuthPage) {
-                redirectPath = successfulLoginRedirect || (userRole === 'admin' ? '/admin/dashboard' : '/account');
+                redirectPath = redirectParam || (userRole === 'admin' ? '/admin/dashboard' : '/account');
             } else if (isAdminPage && userRole !== 'admin') {
                 redirectPath = '/account';
             } else if (isAccountPage && userRole === 'admin') {
@@ -83,34 +72,27 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
             }
         }
         
-        // 3. Perform action based on redirect path.
-        if (redirectPath) {
+        if (redirectPath && redirectPath !== pathname) {
             router.replace(redirectPath);
-            setIsRouteAuthorized(false); // Keep gate closed during redirection.
+            setIsRouteAuthorized(false);
         } else {
-            // No redirect is needed, the route is authorized. Open the gate.
             setIsRouteAuthorized(true);
         }
 
     }, [isDataLoading, user, userProfile, pathname, redirectParam, router]);
     
-    // The render logic is now extremely simple.
-    if (isRouteAuthorized) {
-        return <>{children}</>;
+    if (!hasMounted || !isRouteAuthorized) {
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+                <p suppressHydrationWarning className="mt-4 text-sm text-muted-foreground">
+                    Loading...
+                </p>
+            </div>
+        );
     }
     
-    // If the route is not yet authorized (or is redirecting), show a consistent loading screen.
-    return (
-        <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-            <p 
-              suppressHydrationWarning={true} 
-              className="mt-4 text-sm text-muted-foreground"
-            >
-              Loading...
-            </p>
-        </div>
-    );
+    return <>{children}</>;
 }
 
 function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -132,7 +114,7 @@ export default function RootClientLayout({ children }: { children: React.ReactNo
        <Suspense fallback={
         <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-          <p suppressHydrationWarning={true} className="mt-4 text-sm text-muted-foreground">
+          <p suppressHydrationWarning className="mt-4 text-sm text-muted-foreground">
             Loading...
           </p>
         </div>
