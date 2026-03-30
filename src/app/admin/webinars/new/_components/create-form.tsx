@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud, X } from "lucide-react"
+import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud, X, Lock } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DatePicker } from "@/components/ui/datepicker"
 import { useToast } from "@/hooks/use-toast"
@@ -76,6 +74,7 @@ const processCourseData = (data: z.infer<typeof courseFormSchema>, instructorDat
       schedule: data.schedule || 'Flexible',
       status: data.status,
       features: data.features.map(f => f.value),
+      exclusiveContent: data.exclusiveContent || {},
       modules: processedModules,
       instructorId: instructorData.id,
       instructor: instructorData,
@@ -144,6 +143,11 @@ export function CreateCourseForm() {
       schedule: "Flexible",
       status: "Draft",
       features: [{ value: "" }],
+      exclusiveContent: {
+        zoomLink: "",
+        whatsappLink: "",
+        additionalNotes: "",
+      },
       modules: [
         {
           id: `new-mod-${Date.now()}`,
@@ -426,6 +430,53 @@ export function CreateCourseForm() {
                         </div>
                       </FormControl>
                       <FormDescription>Optional preview video for the webinar.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-primary" />
+                  Exclusive Content (For Buyers Only)
+                </CardTitle>
+                <CardDescription>
+                  This information will only be visible to users who have enrolled/paid for this webinar.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="exclusiveContent.zoomLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zoom / Meeting Link</FormLabel>
+                      <FormControl><Input placeholder="https://zoom.us/j/..." {...field} disabled={totalLoading} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="exclusiveContent.whatsappLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp Group Link</FormLabel>
+                      <FormControl><Input placeholder="https://chat.whatsapp.com/..." {...field} disabled={totalLoading} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="exclusiveContent.additionalNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Notes (e.g., Meeting Passwords)</FormLabel>
+                      <FormControl><Textarea placeholder="Password Zoom: 123456" {...field} disabled={totalLoading} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

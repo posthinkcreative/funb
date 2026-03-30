@@ -1,11 +1,10 @@
-
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity, X, CheckCircle2, PlayCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { BarChart, Check, FileText, VolumeX, Volume2, Expand, Calendar, Clock, Activity, X, CheckCircle2, PlayCircle, Lock, ExternalLink, MessageCircle } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -137,6 +136,52 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
         <div className={cn("grid lg:grid-cols-3 gap-12", isFullscreen && "block h-full")}>
           
           <div className={cn("lg:col-span-2 space-y-8", isFullscreen && "hidden")}>
+            
+            {/* Exclusive Content Section */}
+            {isEnrolled && (
+              <Card className="border-primary/30 bg-primary/5 shadow-md overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500">
+                <CardHeader className="bg-primary/10 flex flex-row items-center gap-3 py-4">
+                  <Lock className="w-6 h-6 text-primary" />
+                  <div>
+                    <CardTitle className="text-xl">Webinar Access Details</CardTitle>
+                    <CardDescription>Welcome! Here are your exclusive access details.</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {course.exclusiveContent?.zoomLink && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Webinar Link (Zoom/GMeet)</p>
+                        <Button className="w-full justify-between" variant="outline" asChild>
+                          <a href={course.exclusiveContent.zoomLink} target="_blank" rel="noopener noreferrer">
+                            Join Live Session
+                            <ExternalLink className="w-4 h-4 ml-2" />
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                    {course.exclusiveContent?.whatsappLink && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Community Group</p>
+                        <Button className="w-full justify-between bg-green-600 hover:bg-green-700 text-white" asChild>
+                          <a href={course.exclusiveContent.whatsappLink} target="_blank" rel="noopener noreferrer">
+                            Join WhatsApp Group
+                            <MessageCircle className="w-4 h-4 ml-2" />
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {course.exclusiveContent?.additionalNotes && (
+                    <div className="mt-6 p-4 rounded-lg bg-background border border-dashed">
+                      <p className="text-sm font-semibold mb-2">Important Notes:</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{course.exclusiveContent.additionalNotes}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="shadow-xl bg-background">
               <CardHeader className="text-center pt-8">
                   <Badge variant="secondary" className="mb-4 w-fit mx-auto">{course.category}</Badge>
@@ -150,7 +195,7 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
             <div className="space-y-8 mt-8">
                 <Card className="shadow-lg bg-background">
                 <CardHeader>
-                    <h2 className="text-2xl font-headline font-bold">What you'll learn</h2>
+                    <h2 className="text-2xl font-headline font-bold">What you will learn</h2>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-4 text-sm">
                     {course.features.map(item => (
@@ -162,7 +207,7 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                 </CardContent>
                 </Card>
 
-                <h2 className="text-2xl font-headline font-bold pt-8">Webinar content</h2>
+                <h2 className="text-2xl font-headline font-bold pt-8">Webinar Content</h2>
                 <Accordion type="single" collapsible className="w-full bg-background rounded-lg border shadow-lg">
                 {course.modules.map(module => (
                     <AccordionItem value={module.id} key={module.id}>
@@ -276,11 +321,11 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                         <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold" asChild>
                           <Link href="/account/my-webinars">
                             <PlayCircle className="mr-2 h-5 w-5" />
-                            Access Webinar
+                            My Learning Dashboard
                           </Link>
                         </Button>
                         <p className="text-xs text-center text-muted-foreground">
-                          Find all your learning materials in your account.
+                          Exclusive access links are now visible on this page.
                         </p>
                       </div>
                     ) : (
@@ -310,19 +355,19 @@ export function WebinarContent({ course, relatedCourses, enrollmentCount }: Webi
                     {course.courseTime && (
                         <li className="flex items-center gap-3">
                         <Clock className="w-5 h-5 text-primary" />
-                        <span>Pukul {course.courseTime} WIB</span>
+                        <span>At {course.courseTime} WIB</span>
                         </li>
                     )}
                     {course.level && (
                         <li className="flex items-center gap-3">
                         <BarChart className="w-5 h-5 text-primary" />
-                        <span>{course.level} Level</span>
+                        <span>Level {course.level}</span>
                         </li>
                     )}
                     {course.schedule && (
                         <li className="flex items-center gap-3">
                         <Activity className="w-5 h-5 text-primary" />
-                        <span>{course.schedule} schedule</span>
+                        <span>Schedule {course.schedule}</span>
                         </li>
                     )}
                     </ul>

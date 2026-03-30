@@ -55,6 +55,11 @@ export type Course = {
   status: 'Published' | 'Draft' | 'Archived';
   sortOrder?: number;
   createdAt?: any;
+  exclusiveContent?: {
+    zoomLink?: string;
+    whatsappLink?: string;
+    additionalNotes?: string;
+  };
 };
 
 export type UserProfile = {
@@ -63,6 +68,20 @@ export type UserProfile = {
   email: string;
   photoURL: string;
   role: 'admin' | 'customer';
+  enrolledCourseIds?: string[];
+};
+
+export type Transaction = {
+  id: string;
+  userId: string;
+  courseId: string;
+  courseTitle: string;
+  courseImageUrl: string;
+  transactionDate: any;
+  amount: number;
+  paymentMethod: string;
+  ipaymuReference: string;
+  quantity: number;
 };
 
 export type PractitionerCategory = 'Business' | 'Data Science' | 'Development' | 'Marketing' | 'Design';

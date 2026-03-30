@@ -20,6 +20,11 @@ export const courseFormSchema = z.object({
   status: z.enum(['Published', 'Draft', 'Archived']),
   sortOrder: z.number().optional(),
   features: z.array(z.object({ value: z.string().min(1, { message: "Please enter a value." }) })),
+  exclusiveContent: z.object({
+    zoomLink: z.string().optional(),
+    whatsappLink: z.string().optional(),
+    additionalNotes: z.string().optional(),
+  }).optional(),
   modules: z.array(
     z.object({
       id: z.string(),

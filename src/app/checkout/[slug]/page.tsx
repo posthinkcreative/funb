@@ -82,9 +82,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       // Add to user's enrolled courses (ID is unique in arrayUnion)
       await updateDoc(userRef, { enrolledCourseIds: arrayUnion(course.id) });
       
+      // Simpan data transaksi dengan informasi denormalisasi untuk riwayat
       await addDoc(transactionsRef, {
         userId: user.uid,
         courseId: course.id,
+        courseTitle: course.title,
+        courseImageUrl: course.imageUrl,
         quantity: quantity,
         transactionDate: serverTimestamp(),
         amount: prices.total,

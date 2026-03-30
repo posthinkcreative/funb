@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Course, Instructor } from "@/types"
-import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud, X } from "lucide-react"
+import { Trash, GripVertical, PlusCircle, ArrowUp, ArrowDown, UploadCloud, X, Lock } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DatePicker } from "@/components/ui/datepicker"
 import { useToast } from "@/hooks/use-toast"
@@ -129,6 +129,11 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
       schedule: course.schedule || "Flexible",
       status: course.status,
       features: course.features.map(feature => ({ value: feature })),
+      exclusiveContent: {
+        zoomLink: course.exclusiveContent?.zoomLink || "",
+        whatsappLink: course.exclusiveContent?.whatsappLink || "",
+        additionalNotes: course.exclusiveContent?.additionalNotes || "",
+      },
       modules: course.modules.map(module => ({
         ...module,
         lessons: module.lessons.map(lesson => {
@@ -162,7 +167,7 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
             const imageRef = ref(storage, course.imageUrl);
             deleteFilePromises.push(deleteObject(imageRef).catch(error => {
                 // If object doesn't exist, we don't need to throw an error
-                if (error.code !== 'storage/object-not-found') {
+                if (error.code === 'storage/object-not-found') {
                     console.error("Failed to delete image:", error);
                 }
             }));
@@ -172,7 +177,7 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
         if (course.videoUrl && course.videoUrl.includes('firebasestorage.googleapis.com')) {
             const videoRef = ref(storage, course.videoUrl);
             deleteFilePromises.push(deleteObject(videoRef).catch(error => {
-                if (error.code !== 'storage/object-not-found') {
+                if (error.code === 'storage/object-not-found') {
                     console.error("Failed to delete video:", error);
                 }
             }));
@@ -298,6 +303,7 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
             discountType: values.discountType,
             discountValue: values.discountType !== 'none' ? Number(values.discountValue) : 0,
             features: values.features.map(f => f.value),
+            exclusiveContent: values.exclusiveContent || {},
             modules: processedModules,
             longDescription: values.description, 
             instructorId: instructorData.id,
@@ -477,6 +483,53 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                         </div>
                       </FormControl>
                       <FormDescription>Optional preview video for the webinar.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-primary" />
+                  Exclusive Content (For Buyers Only)
+                </CardTitle>
+                <CardDescription>
+                  This information will only be visible to users who have enrolled/paid for this webinar.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="exclusiveContent.zoomLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zoom / Meeting Link</FormLabel>
+                      <FormControl><Input placeholder="https://zoom.us/j/..." {...field} disabled={totalLoading} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="exclusiveContent.whatsappLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp Group Link</FormLabel>
+                      <FormControl><Input placeholder="https://chat.whatsapp.com/..." {...field} disabled={totalLoading} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="exclusiveContent.additionalNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Notes (e.g., Meeting Passwords)</FormLabel>
+                      <FormControl><Textarea placeholder="Password Zoom: 123456" {...field} disabled={totalLoading} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -722,9 +775,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             </div>
                         </FormItem>
                     </div>
-                    <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Development">Development</SelectItem><SelectItem value="Design">Design</SelectItem><SelectItem value="Business">Business</SelectItem><SelectItem value="Marketing">Marketing</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="level" render={({ field }) => (<FormItem><FormLabel>Level</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Beginner">Beginner</SelectItem><SelectItem value="Intermediate">Intermediate</SelectItem><SelectItem value="Advanced">Advanced</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="schedule" render={({ field }) => (<FormItem><FormLabel>Schedule</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a schedule type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Flexible">Flexible</SelectItem><SelectItem value="Fixed">Fixed</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Development">Development</SelectItem><SelectItem value="Design">Design</SelectItem><SelectItem value="Business">Business</SelectItem><SelectItem value="Marketing">Marketing</SelectItem></Select><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="level" render={({ field }) => (<FormItem><FormLabel>Level</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Beginner">Beginner</SelectItem><SelectItem value="Intermediate">Intermediate</SelectItem><SelectItem value="Advanced">Advanced</SelectItem></Select><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="schedule" render={({ field }) => (<FormItem><FormLabel>Schedule</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a schedule type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Flexible">Flexible</SelectItem><SelectItem value="Fixed">Fixed</SelectItem></Select><FormMessage /></FormItem>)} />
                 </CardContent>
             </Card>
             

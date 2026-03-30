@@ -2,14 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { User, BookMarked, Settings, LogOut } from "lucide-react"
+import { User, BookMarked, Settings, LogOut, History } from "lucide-react"
 import { useAuth } from "@/firebase"
 import { signOut } from "firebase/auth"
 import React from "react"
 
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
 
 const navItems = [
   {
@@ -23,6 +22,11 @@ const navItems = [
     icon: BookMarked,
   },
   {
+    href: "/account/transactions",
+    label: "Order History",
+    icon: History,
+  },
+  {
     href: "/account/settings",
     label: "Settings",
     icon: Settings,
@@ -34,16 +38,12 @@ export function AccountNav() {
   const auth = useAuth();
   const { toast } = useToast();
   
-  // No longer need useUser or role checks here,
-  // as the global guard ensures only authenticated customers see this.
-
   const handleLogout = async () => {
       await signOut(auth);
       toast({
           title: "Logged Out",
           description: "You have been successfully logged out.",
       });
-      // The global auth handler will redirect to /login
   };
 
 
@@ -60,7 +60,7 @@ export function AccountNav() {
           </Button>
         </Link>
       ))}
-       <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+       <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>
