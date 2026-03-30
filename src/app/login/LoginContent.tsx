@@ -1,11 +1,11 @@
 'use client'
 
 import Link from "next/link"
-import React, { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import React, { useState } from 'react';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from "firebase/auth";
 import { useAuth, useFirestore } from "@/firebase";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,15 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function LoginContent() {
   const { toast } = useToast();
@@ -30,13 +39,18 @@ export default function LoginContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Forgot Password States
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
     
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // The global AuthHandler in root-client-layout.tsx will now handle the redirection.
     } catch (error: any) {
       toast({
         title: "Login Failed",
@@ -58,17 +72,15 @@ export default function LoginContent() {
       const userRef = doc(firestore, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
-      // If the user is new (e.g., first sign-in with Google), create their document.
       if (!userSnap.exists()) {
           await setDoc(userRef, {
               uid: user.uid,
               email: user.email,
               name: user.displayName,
               photoURL: user.photoURL,
-              role: 'customer', // Default role
+              role: 'customer',
           });
       }
-      // The global AuthHandler will detect the new user state and redirect.
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google Sign-In Error:", error);
@@ -82,6 +94,45 @@ export default function LoginContent() {
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError(null);
+
+    if (!forgotEmail) {
+        setResetError("Please enter your email address.");
+        return;
+    }
+
+    setIsResetting(true);
+    try {
+        await sendPasswordResetEmail(auth, forgotEmail);
+        
+        // Tutup dialog dulu baru tampilkan toast sukses
+        setIsDialogOpen(false);
+        toast({
+            title: "Reset Link Sent",
+            description: `We've sent a password reset link to ${forgotEmail}. Please check your inbox and spam folder.`,
+        });
+        setForgotEmail('');
+    } catch (error: any) {
+        // Kami menangani error secara visual di UI, jadi hapus console.error agar tidak memicu overlay pengembangan
+        let message = "Failed to send reset email. Please try again later.";
+        
+        // Error ini hanya akan muncul jika 'Email Enumeration Protection' dimatikan di Console
+        if (error.code === 'auth/user-not-found') {
+            message = "This email is not registered in our system.";
+        } else if (error.code === 'auth/invalid-email') {
+            message = "Please enter a valid email address.";
+        } else if (error.code === 'auth/too-many-requests') {
+            message = "Too many requests. Please try again in a few minutes.";
+        }
+
+        setResetError(message);
+    } finally {
+        setIsResetting(false);
+    }
+  }
+
   return (
     <div className="flex items-center justify-center py-12">
       <Card className="mx-auto max-w-sm">
@@ -92,6 +143,7 @@ export default function LoginContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Form Login Utama */}
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -108,12 +160,16 @@ export default function LoginContent() {
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
-                <Link
-                  href="#"
-                  className="ml-auto inline-block text-sm underline"
+                <button
+                    type="button"
+                    onClick={() => {
+                        setResetError(null);
+                        setIsDialogOpen(true);
+                    }}
+                    className="ml-auto inline-block text-sm underline hover:text-primary transition-colors"
                 >
-                  Forgot your password?
-                </Link>
+                    Forgot your password?
+                </button>
               </div>
               <div className="relative">
                 <Input 
@@ -150,6 +206,49 @@ export default function LoginContent() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog Lupa Kata Sandi (Berada di luar Card Login) */}
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setResetError(null);
+      }}>
+          <DialogContent className="sm:max-w-[425px]">
+              <form onSubmit={handleForgotPassword}>
+                  <DialogHeader>
+                      <DialogTitle>Reset Password</DialogTitle>
+                      <DialogDescription>
+                          Enter your email address and we'll send you a link to reset your password.
+                      </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                      {resetError && (
+                          <Alert variant="destructive">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertTitle>Error</AlertTitle>
+                              <AlertDescription>{resetError}</AlertDescription>
+                          </Alert>
+                      )}
+                      <div className="grid gap-2">
+                          <Label htmlFor="forgot-email">Email Address</Label>
+                          <Input
+                              id="forgot-email"
+                              type="email"
+                              placeholder="name@example.com"
+                              value={forgotEmail}
+                              onChange={(e) => setForgotEmail(e.target.value)}
+                              required
+                              disabled={isResetting}
+                          />
+                      </div>
+                  </div>
+                  <DialogFooter>
+                      <Button type="submit" className="w-full" disabled={isResetting}>
+                          {isResetting ? "Sending..." : "Send Reset Link"}
+                      </Button>
+                  </DialogFooter>
+              </form>
+          </DialogContent>
+      </Dialog>
     </div>
   )
 }
