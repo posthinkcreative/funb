@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/__/auth/:path*",
+      "destination": "https://studio-244816598-618f7://*"
+    }
+  ]
+}
