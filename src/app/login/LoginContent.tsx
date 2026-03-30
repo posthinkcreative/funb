@@ -83,7 +83,6 @@ export default function LoginContent() {
       }
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
-            console.error("Google Sign-In Error:", error);
             toast({
                 title: "Google Sign-In Failed",
                 description: error.message,
@@ -105,9 +104,14 @@ export default function LoginContent() {
 
     setIsResetting(true);
     try {
-        await sendPasswordResetEmail(auth, forgotEmail);
+        // Mengkonfigurasi agar user bisa diarahkan kembali ke aplikasi setelah reset
+        const actionCodeSettings = {
+            url: window.location.origin + '/login',
+            handleCodeInApp: false,
+        };
+
+        await sendPasswordResetEmail(auth, forgotEmail, actionCodeSettings);
         
-        // Tutup dialog dulu baru tampilkan toast sukses
         setIsDialogOpen(false);
         toast({
             title: "Reset Link Sent",
@@ -115,10 +119,8 @@ export default function LoginContent() {
         });
         setForgotEmail('');
     } catch (error: any) {
-        // Kami menangani error secara visual di UI, jadi hapus console.error agar tidak memicu overlay pengembangan
         let message = "Failed to send reset email. Please try again later.";
         
-        // Error ini hanya akan muncul jika 'Email Enumeration Protection' dimatikan di Console
         if (error.code === 'auth/user-not-found') {
             message = "This email is not registered in our system.";
         } else if (error.code === 'auth/invalid-email') {
@@ -143,7 +145,6 @@ export default function LoginContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Form Login Utama */}
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -207,7 +208,6 @@ export default function LoginContent() {
         </CardContent>
       </Card>
 
-      {/* Dialog Lupa Kata Sandi (Berada di luar Card Login) */}
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) setResetError(null);

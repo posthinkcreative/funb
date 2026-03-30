@@ -499,7 +499,7 @@ export function CreateCourseForm() {
                                     onDragStart={() => handleModuleDragStart(moduleIndex)}
                                     onDragOver={handleModuleDragOver}
                                     onDrop={() => handleModuleDrop(moduleIndex)}
-                                    className={cn("border rounded-lg bg-muted/50", `transition-opacity ${draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100'}`)}
+                                    className={cn("border rounded-lg bg-muted/50 transition-opacity", draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100')}
                                 >
                                     <ModuleItem
                                         moduleIndex={moduleIndex} 
@@ -564,7 +564,7 @@ export function CreateCourseForm() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Discount Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value || 'none'} disabled={totalLoading}>
+                                    <Select onValueChange={field.onChange} value={field.value || 'none'} disabled={totalLoading}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             <SelectItem value="none">None</SelectItem>
@@ -702,7 +702,7 @@ export function CreateCourseForm() {
                         render={({ field }) => (
                         <FormItem>
                             <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={totalLoading}>
                             <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
                             </FormControl>
@@ -723,7 +723,7 @@ export function CreateCourseForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Level</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={totalLoading}>
                             <FormControl>
                               <SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger>
                             </FormControl>
@@ -743,7 +743,7 @@ export function CreateCourseForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Schedule</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={totalLoading}>
                             <FormControl>
                               <SelectTrigger><SelectValue placeholder="Select a schedule type" /></SelectTrigger>
                             </FormControl>
@@ -797,7 +797,7 @@ export function CreateCourseForm() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {featureFields.map((field, index) => (
-                        <div key={field.id} className={`flex items-center gap-2 transition-opacity ${draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleFeatureDragStart(index)} onDragOver={handleFeatureDragOver} onDrop={() => handleFeatureDrop(index)} >
+                        <div key={field.id} className={cn("flex items-center gap-2 transition-opacity", draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100')} draggable onDragStart={() => handleFeatureDragStart(index)} onDragOver={handleFeatureDragOver} onDrop={() => handleFeatureDrop(index)} >
                             <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex"><GripVertical /><span className="sr-only">Drag</span></Button>
                             <FormField
                                 control={form.control}
@@ -880,7 +880,7 @@ function ModuleItem({ moduleIndex, control, removeModule, moveModule, isFirst, i
             </div>
             <AccordionContent className="pt-0 pb-4 pl-12 pr-4 space-y-4">
                  {lessonFields.map((lesson, lessonIndex) => (
-                    <div key={lesson.id} className={`flex items-start gap-2 transition-opacity ${draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleLessonDragStart(lessonIndex)} onDragOver={handleLessonDragOver} onDrop={() => handleLessonDrop(lessonIndex)} >
+                    <div key={lesson.id} className={cn("flex items-start gap-2 transition-opacity", draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100')} draggable onDragStart={() => handleLessonDragStart(lessonIndex)} onDragOver={handleLessonDragOver} onDrop={() => handleLessonDrop(lessonIndex)} >
                         <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex mt-1"><GripVertical className="w-5 h-5"/></Button>
                         <div className="flex-grow space-y-2">
                             <FormField

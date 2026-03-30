@@ -159,21 +159,17 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
 
         const courseRef = doc(firestore, 'webinars', course.id);
 
-        // Array to hold promises for file deletions
         const deleteFilePromises = [];
 
-        // Schedule image for deletion if it's a Firebase Storage URL
         if (course.imageUrl && course.imageUrl.includes('firebasestorage.googleapis.com')) {
             const imageRef = ref(storage, course.imageUrl);
             deleteFilePromises.push(deleteObject(imageRef).catch(error => {
-                // If object doesn't exist, we don't need to throw an error
                 if (error.code === 'storage/object-not-found') {
                     console.error("Failed to delete image:", error);
                 }
             }));
         }
 
-        // Schedule video for deletion if it's a Firebase Storage URL
         if (course.videoUrl && course.videoUrl.includes('firebasestorage.googleapis.com')) {
             const videoRef = ref(storage, course.videoUrl);
             deleteFilePromises.push(deleteObject(videoRef).catch(error => {
@@ -183,10 +179,8 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
             }));
         }
 
-        // Wait for all file deletions to attempt to complete
         await Promise.all(deleteFilePromises);
 
-        // Delete the document from Firestore
         await deleteDoc(courseRef);
 
         toast({
@@ -295,7 +289,7 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
         
         const dataToUpdate: any = {
             ...values,
-            slug: course.slug, // Slug is immutable
+            slug: course.slug, 
             status,
             imageUrl,
             videoUrl,
@@ -381,6 +375,7 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
   const totalLoading = isSubmitting || isUploadingImage || isUploadingVideo || isLoadingInstructors || isUploadingInstructorAvatar;
   
   const watchedInstructorId = form.watch('instructorId');
+  const watchedInstructorName = form.watch('newInstructorName');
   const selectedInstructor = instructors?.find(inst => inst.id === watchedInstructorId);
   const getInitials = (name: string | null | undefined) => {
     if (!name) return '?';
@@ -426,7 +421,13 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   control={form.control}
                   name="title"
                   render={({ field }) => (
-                    <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g. The Complete Web Development Bootcamp" {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. The Complete Web Development Bootcamp" {...field} disabled={totalLoading} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
                  <FormField
@@ -435,7 +436,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Slug</FormLabel>
-                      <FormControl><Input {...field} disabled /></FormControl>
+                      <FormControl>
+                        <Input {...field} disabled />
+                      </FormControl>
                       <FormDescription>The slug cannot be changed after creation.</FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -445,7 +448,14 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   control={form.control}
                   name="description"
                   render={({ field }) => (
-                    <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="e.g. Learn to build modern web applications..." className="resize-none" rows={4} {...field} disabled={totalLoading} /></FormControl><FormDescription>A short description of the webinar.</FormDescription><FormMessage /></FormItem>
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g. Learn to build modern web applications..." className="resize-none" rows={4} {...field} disabled={totalLoading} />
+                      </FormControl>
+                      <FormDescription>A short description of the webinar.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
                 <FormField
@@ -456,11 +466,26 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                       <FormLabel>Image</FormLabel>
                       <FormControl>
                         <div className="space-y-4">
-                          <div className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-6 text-center cursor-pointer hover:bg-muted transition-colors" onClick={() => imageInputRef.current?.click()}>
-                            <div className="flex flex-col items-center gap-2 text-muted-foreground"><UploadCloud className="w-10 h-10" /><p className="font-semibold">{newImageFile ? "File selected:" : "Click or drag file to upload"}</p><p className="text-sm">{newImageFile ? newImageFile.name : "Recommended: 1200x800px"}</p></div>
+                          <div 
+                            className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-6 text-center cursor-pointer hover:bg-muted transition-colors" 
+                            onClick={() => imageInputRef.current?.click()}
+                          >
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                              <UploadCloud className="w-10 h-10" />
+                              <p className="font-semibold">{newImageFile ? "File selected:" : "Click or drag file to upload"}</p>
+                              <p className="text-sm">{newImageFile ? newImageFile.name : "Recommended: 1200x800px"}</p>
+                            </div>
                             <Input ref={imageInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => handleFileSelect(e, 'image')} disabled={totalLoading} />
                           </div>
-                          {(imagePreviewUrl || watchedImageUrl) && <Image src={imagePreviewUrl || watchedImageUrl} alt="Image preview" width={240} height={160} className="rounded-md object-cover mx-auto" />}
+                          {(imagePreviewUrl || watchedImageUrl) && (
+                            <Image 
+                              src={imagePreviewUrl || watchedImageUrl} 
+                              alt="Image preview" 
+                              width={240} 
+                              height={160} 
+                              className="rounded-md object-cover mx-auto" 
+                            />
+                          )}
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -475,11 +500,20 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                       <FormLabel>Video (Optional)</FormLabel>
                       <FormControl>
                         <div className="space-y-4">
-                          <div className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-6 text-center cursor-pointer hover:bg-muted transition-colors" onClick={() => videoInputRef.current?.click()}>
-                             <div className="flex flex-col items-center gap-2 text-muted-foreground"><UploadCloud className="w-10 h-10" /><p className="font-semibold">{newVideoFile ? "File selected:" : "Click or drag file to upload"}</p><p className="text-sm">{newVideoFile ? newVideoFile.name : "MP4, WebM"}</p></div>
+                          <div 
+                            className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-6 text-center cursor-pointer hover:bg-muted transition-colors" 
+                            onClick={() => videoInputRef.current?.click()}
+                          >
+                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                               <UploadCloud className="w-10 h-10" />
+                               <p className="font-semibold">{newVideoFile ? "File selected:" : "Click or drag file to upload"}</p>
+                               <p className="text-sm">{newVideoFile ? newVideoFile.name : "MP4, WebM"}</p>
+                             </div>
                             <Input ref={videoInputRef} type="file" className="hidden" accept="video/*" onChange={(e) => handleFileSelect(e, 'video')} disabled={totalLoading} />
                           </div>
-                          {(videoPreviewUrl || (watchedVideoUrl && watchedVideoUrl.trim() !== '' && watchedVideoUrl.trim() !== 'file-selected')) && <video src={videoPreviewUrl || watchedVideoUrl} controls className="w-full max-w-xs rounded-md mx-auto" />}
+                          {(videoPreviewUrl || (watchedVideoUrl && watchedVideoUrl.trim() !== '' && watchedVideoUrl.trim() !== 'file-selected')) && (
+                            <video src={videoPreviewUrl || watchedVideoUrl} controls className="w-full max-w-xs rounded-md mx-auto" />
+                          )}
                         </div>
                       </FormControl>
                       <FormDescription>Optional preview video for the webinar.</FormDescription>
@@ -507,7 +541,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Zoom / Meeting Link</FormLabel>
-                      <FormControl><Input placeholder="https://zoom.us/j/..." {...field} disabled={totalLoading} /></FormControl>
+                      <FormControl>
+                        <Input placeholder="https://zoom.us/j/..." {...field} disabled={totalLoading} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -518,7 +554,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>WhatsApp Group Link</FormLabel>
-                      <FormControl><Input placeholder="https://chat.whatsapp.com/..." {...field} disabled={totalLoading} /></FormControl>
+                      <FormControl>
+                        <Input placeholder="https://chat.whatsapp.com/..." {...field} disabled={totalLoading} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -529,7 +567,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Additional Notes (e.g., Meeting Passwords)</FormLabel>
-                      <FormControl><Textarea placeholder="Password Zoom: 123456" {...field} disabled={totalLoading} /></FormControl>
+                      <FormControl>
+                        <Textarea placeholder="Password Zoom: 123456" {...field} disabled={totalLoading} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -538,28 +578,69 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
             </Card>
 
             <Card>
-                <CardHeader><CardTitle>Webinar Content</CardTitle><CardDescription>Organize your webinar into modules and lessons. Drag to reorder or use arrows.</CardDescription></CardHeader>
+                <CardHeader>
+                  <CardTitle>Webinar Content</CardTitle>
+                  <CardDescription>Organize your webinar into modules and lessons. Drag to reorder or use arrows.</CardDescription>
+                </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
                         <Accordion type="multiple" className="w-full" defaultValue={[`module-${moduleFields[0]?.id}`]}>
                             {moduleFields.map((module, moduleIndex) => (
-                                <div key={module.id} draggable onDragStart={() => handleModuleDragStart(moduleIndex)} onDragOver={handleModuleDragOver} onDrop={() => handleModuleDrop(moduleIndex)} className={cn("border rounded-lg bg-muted/50", `transition-opacity ${draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100'}`)}>
-                                    <ModuleItem moduleIndex={moduleIndex} control={form.control} removeModule={removeModule} moveModule={moveModule} isFirst={moduleIndex === 0} isLast={moduleIndex === moduleFields.length - 1} />
+                                <div 
+                                  key={module.id} 
+                                  draggable 
+                                  onDragStart={() => handleModuleDragStart(moduleIndex)} 
+                                  onDragOver={handleModuleDragOver} 
+                                  onDrop={() => handleModuleDrop(moduleIndex)} 
+                                  className={cn("border rounded-lg bg-muted/50 transition-opacity", draggedModuleIndex === moduleIndex ? 'opacity-50' : 'opacity-100')}
+                                >
+                                    <ModuleItem 
+                                      moduleIndex={moduleIndex} 
+                                      control={form.control} 
+                                      removeModule={removeModule} 
+                                      moveModule={moveModule} 
+                                      isFirst={moduleIndex === 0} 
+                                      isLast={moduleIndex === moduleFields.length - 1} 
+                                    />
                                 </div>
                             ))}
                         </Accordion>
-                        <Button type="button" variant="outline" size="sm" onClick={() => appendModule({ id: `new-mod-${Date.now()}`, title: "", lessons: [] })}><PlusCircle className="mr-2 h-4 w-4" />Add Module</Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => appendModule({ id: `new-mod-${Date.now()}`, title: "", lessons: [] })}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Add Module
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
             
             <Card>
-                <CardHeader><CardTitle>What You'll Learn</CardTitle><CardDescription>List key skills. Drag to reorder.</CardDescription></CardHeader>
+                <CardHeader>
+                  <CardTitle>What You'll Learn</CardTitle>
+                  <CardDescription>List key skills. Drag to reorder.</CardDescription>
+                </CardHeader>
                 <CardContent className="space-y-4">
                     {featureFields.map((field, index) => (
-                        <div key={field.id} className={`flex items-center gap-2 transition-opacity ${draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleFeatureDragStart(index)} onDragOver={handleFeatureDragOver} onDrop={() => handleFeatureDrop(index)}>
+                        <div 
+                          key={field.id} 
+                          className={cn("flex items-center gap-2 transition-opacity", draggedFeatureIndex === index ? 'opacity-50' : 'opacity-100')} 
+                          draggable 
+                          onDragStart={() => handleFeatureDragStart(index)} 
+                          onDragOver={handleFeatureDragOver} 
+                          onDrop={() => handleFeatureDrop(index)}
+                        >
                             <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex"><GripVertical /><span className="sr-only">Drag</span></Button>
-                            <FormField control={form.control} name={`features.${index}.value`} render={({ field }) => (<FormItem className="flex-grow"><FormControl><Input placeholder={`e.g. Master modern web development`} {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField 
+                              control={form.control} 
+                              name={`features.${index}.value`} 
+                              render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                  <FormControl>
+                                    <Input placeholder={`e.g. Master modern web development`} {...field} disabled={totalLoading} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )} 
+                            />
                             <div className="flex flex-col">
                                 <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === 0} onClick={() => moveFeature(index, index - 1)}><ArrowUp className="h-4 w-4" /><span className="sr-only">Up</span></Button>
                                 <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={index === featureFields.length - 1} onClick={() => moveFeature(index, index + 1)}><ArrowDown className="h-4 w-4" /><span className="sr-only">Down</span></Button>
@@ -567,7 +648,10 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             <Button type="button" variant="destructive" size="icon" onClick={() => removeFeature(index)}><Trash /><span className="sr-only">Remove</span></Button>
                         </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" onClick={() => appendFeature({ value: "" })}><PlusCircle className="mr-2 h-4 w-4" />Add Feature</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendFeature({ value: "" })}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Feature
+                    </Button>
                 </CardContent>
             </Card>
 
@@ -644,8 +728,14 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Discount Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value || 'none'} disabled={totalLoading}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                                    <Select 
+                                      onValueChange={field.onChange} 
+                                      value={field.value || 'none'} 
+                                      disabled={totalLoading}
+                                    >
+                                        <FormControl>
+                                          <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                                        </FormControl>
                                         <SelectContent>
                                             <SelectItem value="none">None</SelectItem>
                                             <SelectItem value="percentage">Percentage (%)</SelectItem>
@@ -745,7 +835,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Add New Instructor Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g. Bunga Citra" {...field} disabled={totalLoading || !!watchedInstructorId} /></FormControl>
+                                    <FormControl>
+                                      <Input placeholder="e.g. Bunga Citra" {...field} disabled={totalLoading || !!watchedInstructorId} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -756,7 +848,9 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>New Instructor Title</FormLabel>
-                                    <FormControl><Input placeholder="e.g. Lead UX Designer" {...field} disabled={totalLoading || !!watchedInstructorId} /></FormControl>
+                                    <FormControl>
+                                      <Input placeholder="e.g. Lead UX Designer" {...field} disabled={totalLoading || !!watchedInstructorId} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -765,7 +859,11 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             <FormLabel>New Instructor Avatar</FormLabel>
                              <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20 rounded-md">
-                                    <AvatarImage src={instructorAvatarPreviewUrl ?? 'https://placehold.co/400x400/e2e8f0/e2e8f0'} alt="Instructor Avatar Preview" className="aspect-square object-cover" />
+                                    <AvatarImage 
+                                      src={instructorAvatarPreviewUrl ?? 'https://placehold.co/400x400/e2e8f0/e2e8f0'} 
+                                      alt="Instructor Avatar Preview" 
+                                      className="aspect-square object-cover" 
+                                    />
                                     <AvatarFallback>??</AvatarFallback>
                                 </Avatar>
                                 <Button type="button" variant="outline" onClick={() => instructorAvatarInputRef.current?.click()} disabled={totalLoading || !!watchedInstructorId}>
@@ -775,17 +873,99 @@ export function EditWebinarForm({ course }: EditWebinarFormProps) {
                             </div>
                         </FormItem>
                     </div>
-                    <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Development">Development</SelectItem><SelectItem value="Design">Design</SelectItem><SelectItem value="Business">Business</SelectItem><SelectItem value="Marketing">Marketing</SelectItem></Select><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="level" render={({ field }) => (<FormItem><FormLabel>Level</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Beginner">Beginner</SelectItem><SelectItem value="Intermediate">Intermediate</SelectItem><SelectItem value="Advanced">Advanced</SelectItem></Select><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="schedule" render={({ field }) => (<FormItem><FormLabel>Schedule</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} disabled={totalLoading}><FormControl><SelectTrigger><SelectValue placeholder="Select a schedule type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="Flexible">Flexible</SelectItem><SelectItem value="Fixed">Fixed</SelectItem></Select><FormMessage /></FormItem>)} />
+                    
+                    <FormField 
+                      control={form.control} 
+                      name="category" 
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={totalLoading}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Development">Development</SelectItem>
+                              <SelectItem value="Design">Design</SelectItem>
+                              <SelectItem value="Business">Business</SelectItem>
+                              <SelectItem value="Marketing">Marketing</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} 
+                    />
+
+                    <FormField 
+                      control={form.control} 
+                      name="level" 
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Level</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={totalLoading}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Beginner">Beginner</SelectItem>
+                              <SelectItem value="Intermediate">Intermediate</SelectItem>
+                              <SelectItem value="Advanced">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} 
+                    />
+
+                    <FormField 
+                      control={form.control} 
+                      name="schedule" 
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Schedule</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={totalLoading}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Select a schedule type" /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Flexible">Flexible</SelectItem>
+                              <SelectItem value="Fixed">Fixed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} 
+                    />
                 </CardContent>
             </Card>
             
             <Card>
               <CardHeader><CardTitle>Webinar Schedule</CardTitle><CardDescription>Set the date and time for the webinar.</CardDescription></CardHeader>
               <CardContent className="space-y-6">
-                 <FormField control={form.control} name="courseDate" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Date</FormLabel><DatePicker value={field.value} onSelect={field.onChange} className="w-full" /><FormMessage /></FormItem>)} />
-                 <FormField control={form.control} name="courseTime" render={({ field }) => (<FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} disabled={totalLoading} /></FormControl><FormMessage /></FormItem>)} />
+                 <FormField 
+                   control={form.control} 
+                   name="courseDate" 
+                   render={({ field }) => (
+                     <FormItem className="flex flex-col">
+                       <FormLabel>Date</FormLabel>
+                       <DatePicker value={field.value} onSelect={field.onChange} className="w-full" />
+                       <FormMessage />
+                     </FormItem>
+                   )} 
+                 />
+                 <FormField 
+                   control={form.control} 
+                   name="courseTime" 
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Time</FormLabel>
+                       <FormControl>
+                         <Input type="time" {...field} disabled={totalLoading} />
+                       </FormControl>
+                       <FormMessage />
+                     </FormItem>
+                   )} 
+                 />
               </CardContent>
             </Card>
 
@@ -833,7 +1013,7 @@ function ModuleItem({ moduleIndex, control, removeModule, moveModule, isFirst, i
             </div>
             <AccordionContent className="pt-0 pb-4 pl-12 pr-4 space-y-4">
                  {lessonFields.map((lesson, lessonIndex) => (
-                    <div key={lesson.id} className={`flex items-start gap-2 transition-opacity ${draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100'}`} draggable onDragStart={() => handleLessonDragStart(lessonIndex)} onDragOver={handleLessonDragOver} onDrop={() => handleLessonDrop(lessonIndex)}>
+                    <div key={lesson.id} className={cn("flex items-start gap-2 transition-opacity", draggedLessonIndex === lessonIndex ? 'opacity-50' : 'opacity-100')} draggable onDragStart={() => handleLessonDragStart(lessonIndex)} onDragOver={handleLessonDragOver} onDrop={() => handleLessonDrop(lessonIndex)}>
                         <Button type="button" variant="ghost" size="icon" className="cursor-grab hidden md:flex mt-1"><GripVertical className="w-5 h-5"/></Button>
                         <div className="flex-grow space-y-2">
                             <FormField control={control} name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`} render={({ field }) => (<FormItem><FormControl><Input placeholder="Lesson Title" {...field} /></FormControl><FormMessage /></FormItem>)} />
